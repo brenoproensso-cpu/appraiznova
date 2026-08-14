@@ -7,10 +7,45 @@
 const STORAGE_KEY = "raizNova.v1";
 
 /* ---------------------------------------------------------------------------
+   0) ÍCONES — SVG inline, um traço só (sem emoji)
+   --------------------------------------------------------------------------- */
+
+function svgIcon(paths) {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em">${paths}</svg>`;
+}
+
+const ICONS = {
+  moon: svgIcon('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'),
+  clock: svgIcon('<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/>'),
+  pencil: svgIcon('<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"/>'),
+  plate: svgIcon('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/>'),
+  egg: svgIcon('<path d="M12 21c4.4 0 7-3.6 7-8 0-5-3.6-10-7-10S5 8 5 13c0 4.4 2.6 8 7 8Z"/>'),
+  droplet: svgIcon('<path d="M12 2.7l5.7 6.5a7 7 0 1 1-11.4 0z"/>'),
+  flame: svgIcon('<path d="M12 2c3 4 6 7 6 11a6 6 0 0 1-12 0c0-1.5.6-2.5 1.5-3.5.2 1.4 1 2.2 1.8 2.2.9 0 1.2-1 .7-2.4C9 7.8 10 5 12 2Z"/>'),
+  wind: svgIcon('<path d="M4 10h9a3 3 0 1 0-2.8-4"/><path d="M2 15h13a3 3 0 1 1-2.8 4"/>'),
+  shield: svgIcon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>'),
+  calendar: svgIcon('<rect x="3" y="4.5" width="18" height="16" rx="2"/><line x1="16" y1="2.5" x2="16" y2="6.5"/><line x1="8" y1="2.5" x2="8" y2="6.5"/><line x1="3" y1="10" x2="21" y2="10"/>'),
+  leaf: svgIcon('<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>'),
+  camera: svgIcon('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>'),
+  lock: svgIcon('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'),
+  check: svgIcon('<polyline points="20 6 9 17 4 12"/>'),
+};
+
+/* ---------------------------------------------------------------------------
    1) CONTEÚDO — perguntas, receitas, capítulos, perfis
    --------------------------------------------------------------------------- */
 
 const QUESTIONS = [
+  {
+    id: "genero",
+    type: "single",
+    title: "Pra começar, você é:",
+    hint: "Isso ajusta algumas perguntas e o seu plano final.",
+    options: [
+      { id: "feminino", label: "Mulher", tags: {} },
+      { id: "masculino", label: "Homem", tags: {} },
+    ],
+  },
   {
     id: "padrao",
     type: "single",
@@ -40,10 +75,10 @@ const QUESTIONS = [
     title: "Algo destes aconteceu nos últimos 6 meses?",
     hint: "Pode marcar mais de um.",
     options: [
-      { id: "parto", label: "Parto ou pós-parto", tags: { estresse: 2 } },
+      { id: "parto", label: "Parto ou pós-parto", tags: { estresse: 2 }, hideFor: "masculino" },
       { id: "dieta", label: "Dieta restritiva ou perda de peso rápida", tags: { nutricional: 2 } },
       { id: "estresse_forte", label: "Período de estresse ou luto intenso", tags: { estresse: 2 } },
-      { id: "hormonio", label: "Início, troca ou suspensão de anticoncepcional/hormônio", tags: { estresse: 2 } },
+      { id: "hormonio", label: "Início, troca ou suspensão de hormônio (anticoncepcional, tireoide, testosterona etc.)", tags: { estresse: 2 } },
       { id: "cirurgia", label: "Cirurgia, febre alta ou doença recente", tags: { nutricional: 1, estresse: 1 } },
       { id: "nenhum_gatilho", label: "Nenhum desses", tags: { genetico: 1 }, exclusive: true },
     ],
@@ -119,9 +154,9 @@ const PROFILES = {
     name: "Eflúvio por Estresse & Hormônios",
     desc: "Suas respostas apontam para um gatilho recente — estresse, uma fase hormonal ou um evento físico forte. Esse tipo de queda costuma ser temporário e responde bem a rotina consistente + tempo.",
     focus: [
-      { icon: "🌙", title: "Priorize a calma no ritual", text: "A massagem do Passo 1 antes de dormir ajuda o corpo a sair do modo de alerta." },
-      { icon: "🕰️", title: "Dê tempo ao ciclo", text: "Esse tipo de queda leva de 6 a 12 meses para se recuperar por completo." },
-      { icon: "📝", title: "Registre o gatilho", text: "Anotar o que mudou nos últimos meses ajuda a não repetir o padrão." },
+      { icon: "moon", title: "Priorize a calma no ritual", text: "A massagem do Passo 1 antes de dormir ajuda o corpo a sair do modo de alerta." },
+      { icon: "clock", title: "Dê tempo ao ciclo", text: "Esse tipo de queda leva de 6 a 12 meses para se recuperar por completo." },
+      { icon: "pencil", title: "Registre o gatilho", text: "Anotar o que mudou nos últimos meses ajuda a não repetir o padrão." },
     ],
     chapters: ["c1", "c3", "c5"],
     recipes: ["tonico-alecrim", "mascara-babosa"],
@@ -132,9 +167,9 @@ const PROFILES = {
     name: "Eflúvio Nutricional",
     desc: "Seu perfil aponta para uma possível lacuna nutricional — dieta restritiva, pouca proteína ou baixa reposição de ferro e zinco. O folículo costuma ser um dos primeiros lugares a sentir essa falta.",
     focus: [
-      { icon: "🍽️", title: "O prato entra na rotina", text: "Seguir o guia alimentar aqui não é opcional — é onde a mudança real acontece." },
-      { icon: "🥩", title: "Proteína em toda refeição", text: "Garanta uma fonte de proteína em pelo menos 3 refeições do dia." },
-      { icon: "🩸", title: "Vale um exame", text: "Um exame de sangue simples confirma se ferro, zinco ou vitamina D estão baixos." },
+      { icon: "plate", title: "O prato entra na rotina", text: "Seguir o guia alimentar aqui não é opcional — é onde a mudança real acontece." },
+      { icon: "egg", title: "Proteína em toda refeição", text: "Garanta uma fonte de proteína em pelo menos 3 refeições do dia." },
+      { icon: "droplet", title: "Vale um exame", text: "Um exame de sangue simples confirma se ferro, zinco ou vitamina D estão baixos." },
     ],
     chapters: ["c1", "c3", "c2"],
     recipes: ["spray-arroz", "mascara-abacate"],
@@ -145,9 +180,9 @@ const PROFILES = {
     name: "Desgaste por Hábito",
     desc: "A maior parte da sua queda parece ligada a hábitos do dia a dia — calor, tração ou química em excesso — mais do que a uma causa interna. A boa notícia: isso está no seu controle.",
     focus: [
-      { icon: "🔥", title: "Corte o calor sem proteção", text: "É o hábito com mais impacto imediato — nunca sem protetor térmico." },
-      { icon: "🎀", title: "Solte o penteado", text: "Prenda com menos força e varie o ponto de tração." },
-      { icon: "🛡️", title: "Proteja à noite", text: "Fronha de cetim/seda reduz o atrito que quebra o fio enquanto você dorme." },
+      { icon: "flame", title: "Corte o calor sem proteção", text: "É o hábito com mais impacto imediato — nunca sem protetor térmico." },
+      { icon: "wind", title: "Solte o penteado", text: "Prenda com menos força e varie o ponto de tração." },
+      { icon: "shield", title: "Proteja à noite", text: "Fronha de cetim/seda reduz o atrito que quebra o fio enquanto você dorme." },
     ],
     chapters: ["c2", "c3", "c4"],
     recipes: ["oleo-ricino", "enxague-vinagre"],
@@ -155,12 +190,18 @@ const PROFILES = {
     foodTags: ["Proteína", "Vitamina C"],
   },
   genetico: {
-    name: "Padrão com Possível Componente Genético",
-    desc: "O padrão descrito (queda concentrada em entradas/coroa, tempo prolongado, ou histórico familiar) pode ter componente hereditário. Este guia ajuda a fortalecer e cuidar — mas aqui o acompanhamento profissional faz toda a diferença no resultado.",
+    name: {
+      feminino: "Padrão Genético de Afinamento Capilar",
+      masculino: "Padrão de Calvície Masculina (Genético)",
+    },
+    desc: {
+      feminino: "O padrão descrito (queda concentrada em entradas/coroa, tempo prolongado, ou histórico familiar) pode ter componente hereditário — a alopecia androgenética também existe na versão feminina, normalmente como afinamento difuso. Este guia ajuda a fortalecer e cuidar — mas aqui o acompanhamento profissional faz toda a diferença no resultado.",
+      masculino: "O padrão descrito (entradas, coroa ou topo, tempo prolongado, ou histórico familiar) é a assinatura clássica da calvície de padrão masculino (alopecia androgenética) — a causa mais comum de queda em homens. Este guia ajuda a fortalecer e cuidar — mas aqui o acompanhamento profissional faz toda a diferença no resultado.",
+    },
     focus: [
-      { icon: "🩺", title: "Marque uma avaliação", text: "Um dermatologista confirma o padrão e indica o que mais somar ao seu cuidado." },
-      { icon: "🌿", title: "Cuide do que está no seu controle", text: "A rotina do Protocolo Raiz Nova ainda ajuda a manter o couro cabeludo saudável." },
-      { icon: "📸", title: "Acompanhe com fotos", text: "Fotos mensais, mesma luz e ângulo, ajudam a enxergar mudanças reais." },
+      { icon: "calendar", title: "Marque uma avaliação", text: "Um dermatologista confirma o padrão e indica o que mais somar ao seu cuidado." },
+      { icon: "leaf", title: "Cuide do que está no seu controle", text: "A rotina do Protocolo Raiz Nova ainda ajuda a manter o couro cabeludo saudável." },
+      { icon: "camera", title: "Acompanhe com fotos", text: "Fotos mensais, mesma luz e ângulo, ajudam a enxergar mudanças reais." },
     ],
     chapters: ["c5", "c1", "c3"],
     recipes: ["tonico-alecrim", "oleo-ricino"],
@@ -270,6 +311,13 @@ let state = loadState();
    3) SCORING
    --------------------------------------------------------------------------- */
 
+// alguns campos de perfil variam por gênero (ex.: calvície masculina x feminina);
+// quando o campo é uma string só, serve pra todo mundo sem alteração.
+function resolveText(value, gender) {
+  if (typeof value === "string") return value;
+  return value[gender] || value.feminino || Object.values(value)[0];
+}
+
 function computeProfile(answers) {
   const scores = { estresse: 0, nutricional: 0, habito: 0, genetico: 0 };
   const redFlags = new Set();
@@ -298,6 +346,7 @@ function computeProfile(answers) {
 
   const base = PROFILES[top];
   const redFlagText = Array.from(redFlags).map((k) => REDFLAG_MESSAGES[k]).join(" ");
+  const gender = answers.genero === "masculino" ? "masculino" : "feminino";
 
   const priority = answers.prioridade;
   let recipes = [...base.recipes];
@@ -307,8 +356,9 @@ function computeProfile(answers) {
 
   return {
     key: top,
-    name: base.name,
-    desc: base.desc,
+    gender,
+    name: resolveText(base.name, gender),
+    desc: resolveText(base.desc, gender),
     focus: base.focus,
     chapters: base.chapters,
     recipes,
@@ -355,11 +405,13 @@ function renderQuiz() {
 
   const qBox = document.getElementById("quizQuestion");
   const currentAns = state.answers[q.id] ?? (q.type === "multi" ? [] : null);
+  const gender = state.answers.genero;
+  const visibleOptions = q.options.filter((opt) => !opt.hideFor || opt.hideFor !== gender);
 
-  const optionsHtml = q.options.map((opt) => {
+  const optionsHtml = visibleOptions.map((opt) => {
     const selected = q.type === "multi" ? currentAns.includes(opt.id) : currentAns === opt.id;
     return `<button type="button" class="option ${q.type === "single" ? "option--radio" : ""} ${selected ? "is-selected" : ""}" data-opt="${opt.id}">
-      <span class="option__mark">${selected ? "✓" : ""}</span>
+      <span class="option__mark">${selected ? ICONS.check : ""}</span>
       <span class="option__text">${opt.label}</span>
     </button>`;
   }).join("");
@@ -420,7 +472,7 @@ function renderResult() {
   const grid = document.getElementById("focusGrid");
   grid.innerHTML = p.focus.map((f) => `
     <div class="focus-card">
-      <div class="focus-card__icon">${f.icon}</div>
+      <div class="focus-card__icon">${ICONS[f.icon]}</div>
       <h3>${f.title}</h3>
       <p>${f.text}</p>
     </div>
@@ -475,7 +527,7 @@ function renderDashboard() {
   const todayList = document.getElementById("todayChecklist");
   todayList.innerHTML = steps.map((s, i) => `
     <li class="${state.todayChecklist[i] ? "done" : ""}" data-i="${i}">
-      <span class="step-mark">${state.todayChecklist[i] ? "✓" : ""}</span>
+      <span class="step-mark">${state.todayChecklist[i] ? ICONS.check : ""}</span>
       <span class="step-text">${s}</span>
     </li>
   `).join("");
@@ -510,7 +562,7 @@ function renderDashboard() {
   document.getElementById("bonus4Card").innerHTML = `
     <div class="card__title-row">
       <h2 class="card__title">${bc.title}</h2>
-      <span class="lock-icon">🔒</span>
+      <span class="lock-icon">${ICONS.lock}</span>
     </div>
     <p class="card__text card__text--muted">${bc.text}</p>
     <a class="btn btn--upsell btn--sm" href="${UPSELLS.advanced.checkoutUrl}" target="_blank" rel="noopener">
@@ -541,7 +593,7 @@ function renderDashboard() {
   const grid = document.getElementById("trackerGrid");
   grid.innerHTML = state.checklist.map((done, i) => `
     <div class="day-cell ${done ? "done" : ""} ${i === dayIdx ? "today" : ""}" data-i="${i}" title="Dia ${i + 1}">
-      ${done ? "✓" : i + 1}
+      ${done ? ICONS.check : i + 1}
     </div>
   `).join("");
   grid.querySelectorAll(".day-cell").forEach((cell) => {

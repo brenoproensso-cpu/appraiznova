@@ -84,7 +84,7 @@ h1,h2,h3{ font-family: var(--font-display); margin:0; color: var(--plum); }
   font-family: var(--font-body); font-size: .78rem; padding: .5rem .9rem;
   border-radius: 999px; cursor:pointer; transition: all .2s ease;
 }
-.topbar__reset:hover{ border-color: var(--terracota); color: var(--terracota-deep); }
+.topbar__reset:hover{ border-color: var(--terracota); color: var(--plum); }
 
 /* ---------------------------------- layout ---------------------------- */
 main{ position: relative; z-index: 1; }
@@ -142,6 +142,7 @@ main{ position: relative; z-index: 1; }
   background: var(--paper);
 }
 .option.is-selected .option__mark{ background: var(--plum); border-color: var(--plum); color: var(--paper); }
+.option__mark svg{ width:12px; height:12px; }
 .option--radio .option__mark{ border-radius: 50%; }
 .option__text{ font-size: .98rem; }
 
@@ -155,7 +156,7 @@ main{ position: relative; z-index: 1; }
 .focus-card{
   background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 1.2rem;
 }
-.focus-card__icon{ font-size: 1.3rem; }
+.focus-card__icon{ font-size: 1.3rem; color: var(--terracota-deep); display:flex; }
 .focus-card h3{ font-size: 1rem; margin: .5rem 0 .3rem; color: var(--plum); font-family: var(--font-body); font-weight:700; }
 .focus-card p{ font-size: .88rem; color: var(--muted); margin:0; }
 
@@ -171,11 +172,6 @@ main{ position: relative; z-index: 1; }
   margin: .4rem 0 1.8rem;
   overflow: hidden;
   box-shadow: var(--shadow-lift);
-}
-.upsell-card::after{
-  content:""; position:absolute; top:-3rem; right:-3rem; width:10rem; height:10rem;
-  background: radial-gradient(circle, rgba(201,123,99,.35), transparent 70%);
-  border-radius:50%;
 }
 .upsell-card__badge{
   display:inline-block; background: var(--terracota); color: var(--plum-ink);
@@ -209,7 +205,7 @@ main{ position: relative; z-index: 1; }
   display:flex; flex-direction:column; justify-content:space-between;
 }
 .card--locked .card__title{ color: var(--plum-ink); }
-.lock-icon{ font-size: 1.1rem; }
+.lock-icon{ font-size: 1.1rem; color: var(--terracota-deep); display:flex; }
 .card__text--muted{ color: var(--plum-ink); opacity:.75; }
 
 /* ---------------------------------------------------------------------- */
@@ -232,6 +228,7 @@ main{ position: relative; z-index: 1; }
 /* ---------------------------------- dashboard ---------------------------- */
 .screen--dashboard{ max-width: 920px; }
 .dash__head{ display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; }
+.dash__day{ color: var(--muted); font-size: .92rem; margin: .35rem 0 0; }
 .dash__streak{ text-align:right; }
 .dash__streak-num{ display:block; font-family: var(--font-display); font-size: 2.4rem; color: var(--terracota-deep); line-height:1; }
 .dash__streak-label{ font-size: .74rem; color: var(--muted); text-transform:uppercase; letter-spacing:.06em; }
@@ -265,11 +262,13 @@ main{ position: relative; z-index: 1; }
   display:flex;align-items:center;justify-content:center;font-size:.72rem;color:transparent; background:var(--cream);
 }
 .checklist li.done .step-mark{ background: var(--sage); border-color: var(--sage); color: var(--paper); }
+.step-mark svg{ width:12px; height:12px; }
 .step-text{ font-size: .92rem; }
 
-.recipe-list{ display:flex; flex-direction:column; gap: .9rem; }
-.recipe{ border-left: 3px solid var(--terracota); padding-left: .8rem; }
-.recipe h4{ margin:0 0 .2rem; font-family: var(--font-body); font-size: .93rem; color: var(--plum-ink); font-weight:700; }
+.recipe-list{ display:flex; flex-direction:column; gap: 1.1rem; }
+.recipe{ padding-bottom: 1.1rem; border-bottom: 1px solid var(--line); }
+.recipe:last-child{ padding-bottom: 0; border-bottom: none; }
+.recipe h4{ margin:0 0 .3rem; font-family: var(--font-body); font-size: .93rem; color: var(--plum-ink); font-weight:700; }
 .recipe p{ margin:0; font-size: .85rem; color: var(--muted); }
 
 .tag-row{ display:flex; flex-wrap:wrap; gap:.4rem; margin-top: .9rem; }
@@ -290,6 +289,7 @@ main{ position: relative; z-index: 1; }
 .day-cell.done{ background: var(--sage); border-color: var(--sage); color: var(--paper); }
 .day-cell.today{ box-shadow: 0 0 0 2px var(--terracota); }
 .day-cell.locked{ opacity:.35; cursor:not-allowed; }
+.day-cell svg{ width:14px; height:14px; }
 
 @media (max-width: 640px){
   .screen{ padding-left: 1.1rem; padding-right: 1.1rem; }

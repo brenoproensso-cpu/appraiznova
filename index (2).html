@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protocolo Raiz Nova — Seu plano personalizado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="grain"></div>
+
+<!-- ============ HEADER ============ -->
+<header class="topbar">
+  <div class="topbar__brand">
+    <span class="topbar__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em"><path d="M12 2l1.8 7.2L21 11l-7.2 1.8L12 20l-1.8-7.2L3 11l7.2-1.8z"/></svg></span>
+    <span>Protocolo Raiz Nova</span>
+  </div>
+  <button class="topbar__reset" id="btnReset" title="Refazer diagnóstico">Refazer diagnóstico</button>
+</header>
+
+<main id="app"></main>
+
+<!-- ============ TEMPLATES ============ -->
+
+<template id="tpl-welcome">
+  <section class="screen screen--welcome">
+    <div class="welcome__blob"></div>
+    <h1 class="display display--xl">Todo cabelo tem<br><em>uma história</em> por trás.</h1>
+    <p class="lede">
+      Queda de cabelo não é só uma coisa — pode vir de estresse, de nutrição,
+      de hábito ou de genética, e cada uma pede um foco diferente. Em vez de te
+      entregar um protocolo genérico, vamos te fazer <strong>8 perguntas rápidas</strong>
+      e montar um plano com o que faz mais sentido pro seu caso.
+    </p>
+    <button class="btn btn--primary btn--lg" data-action="start-quiz">
+      Começar meu diagnóstico <span class="btn__arrow">→</span>
+    </button>
+    <p class="fineprint">Leva menos de 2 minutos. Suas respostas ficam salvas só neste navegador.</p>
+  </section>
+</template>
+
+<template id="tpl-quiz">
+  <section class="screen screen--quiz">
+    <div class="quiz__progress">
+      <div class="quiz__progress-bar"><div class="quiz__progress-fill" id="progressFill"></div></div>
+      <span class="quiz__progress-label" id="progressLabel"></span>
+    </div>
+    <div id="quizQuestion" class="quiz__question"></div>
+    <div class="quiz__nav">
+      <button class="btn btn--ghost" id="btnBack" data-action="quiz-back">← Voltar</button>
+      <button class="btn btn--primary" id="btnNext" data-action="quiz-next">Continuar →</button>
+    </div>
+  </section>
+</template>
+
+<template id="tpl-result">
+  <section class="screen screen--result">
+    <h1 class="display display--lg" id="resultTitle"></h1>
+    <p class="lede" id="resultDesc"></p>
+
+    <div class="alert alert--warn" id="redFlagBox" hidden>
+      <strong>Vale uma atenção a mais:</strong>
+      <span id="redFlagText"></span>
+    </div>
+
+    <div class="focus-grid" id="focusGrid"></div>
+
+    <div id="resultUpsell"></div>
+
+    <button class="btn btn--primary btn--lg" data-action="go-dashboard">
+      Ver meu plano completo <span class="btn__arrow">→</span>
+    </button>
+  </section>
+</template>
+
+<template id="tpl-dashboard">
+  <section class="screen screen--dashboard">
+    <div class="dash__head">
+      <div>
+        <h1 class="display display--md" id="dashProfileName"></h1>
+        <p class="dash__day">Dia <span id="dashDay">1</span> de 21</p>
+      </div>
+      <div class="dash__streak">
+        <span class="dash__streak-num" id="streakNum">0</span>
+        <span class="dash__streak-label">dias concluídos</span>
+      </div>
+    </div>
+
+    <div id="day21Banner"></div>
+
+    <div class="progress-track">
+      <div class="progress-track__fill" id="dashProgressFill"></div>
+    </div>
+
+    <div class="dash__grid">
+
+      <article class="card card--routine">
+        <h2 class="card__title">Rotina de hoje</h2>
+        <ul class="checklist" id="todayChecklist"></ul>
+      </article>
+
+      <article class="card card--recipes">
+        <h2 class="card__title">Receitas recomendadas pra você</h2>
+        <div id="recipeList" class="recipe-list"></div>
+      </article>
+
+      <article class="card card--food">
+        <h2 class="card__title">Foco alimentar</h2>
+        <p id="foodFocusText" class="card__text"></p>
+        <div id="foodTags" class="tag-row"></div>
+      </article>
+
+      <article class="card card--chapters">
+        <h2 class="card__title">No guia, comece por aqui</h2>
+        <ol id="chapterList" class="chapter-list"></ol>
+      </article>
+
+      <article class="card card--locked" id="bonus4Card"></article>
+
+    </div>
+
+    <article class="card card--tracker">
+      <div class="card__title-row">
+        <h2 class="card__title">Checklist dos 21 dias</h2>
+        <span class="card__hint">toque para marcar</span>
+      </div>
+      <div class="tracker-grid" id="trackerGrid"></div>
+    </article>
+
+  </section>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>
