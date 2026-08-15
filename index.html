@@ -91,17 +91,14 @@
     <p class="lede" id="capturaLede"></p>
 
     <div class="capture-card">
-      <label for="emailInput">Para onde enviamos a sua cópia?</label>
+      <label for="emailInput" id="emailLabel">Para onde enviamos a sua cópia?</label>
       <input id="emailInput" type="email" autocomplete="email" inputmode="email"
         placeholder="seu@email.com" enterkeyhint="go">
       <p class="capture-card__err" id="emailErr" hidden>Digite um e-mail válido para continuar.</p>
       <button class="btn btn--primary btn--lg" data-action="submit-email">
         Ver meu resultado <span class="btn__arrow">→</span>
       </button>
-      <p class="capture-card__fine">
-        Enviamos o seu plano e o acompanhamento dos 90 dias. Nada de spam, e você
-        pode sair quando quiser.
-      </p>
+      <p class="capture-card__fine" id="emailFine"></p>
     </div>
 
     <button class="link-skip" data-action="skip-email">Prefiro ver sem enviar</button>
