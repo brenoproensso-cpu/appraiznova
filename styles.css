@@ -392,6 +392,32 @@ main{ position: relative; z-index: 1; }
 }
 .allergens--inline{ margin:0; vertical-align:middle; }
 
+/* filtro alimentar da aba Alimentação */
+.card--diet{ background: linear-gradient(150deg, var(--paper), var(--cream)); }
+.diet-chips{ display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1rem; }
+.diet-chip{
+  font-family: var(--font-body); font-size:.82rem; font-weight:600; cursor:pointer;
+  background: var(--paper); color: var(--muted);
+  border:1.5px solid var(--line); border-radius:999px; padding:.5rem .9rem;
+  transition: all .15s ease;
+}
+.diet-chip:hover{ border-color: var(--terracota); color: var(--plum); }
+.diet-chip.is-on{ background: var(--plum); border-color: var(--plum); color: var(--paper); }
+.diet-chip--none.is-on{ background: var(--sage); border-color: var(--sage); }
+
+.card--swaps{ border-color: var(--terracota); }
+.swap-list{ display:flex; flex-direction:column; gap:.5rem; margin:1rem 0; }
+.swap{
+  display:flex; justify-content:space-between; gap:.8rem; flex-wrap:wrap; align-items:baseline;
+  background: var(--cream); border-radius:12px; padding:.7rem .9rem;
+}
+.swap__food{ font-size:.9rem; font-weight:600; color: var(--muted); text-decoration: line-through; }
+.swap__why{ font-size:.72rem; color: var(--terracota-deep); font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+
+.card--gestante{ background: var(--warn-bg); border-color: var(--warn-line); }
+.card--gestante .card__title{ color:#7A4A1F; }
+.card--gestante .card__hint{ color:#8A5520; }
+
 /* alergias e substituições */
 .card--allergy{ border-color: #E0A48C; }
 .alert--danger{

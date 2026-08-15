@@ -549,33 +549,80 @@ const FOOD_ALLERGENS = {
 
 const ANAPHYLAXIS = "Inchaço de lábios, língua ou garganta, falta de ar, tontura ou urticária espalhada depois de comer é emergência médica — procure atendimento imediatamente, não espere passar. E nunca reintroduza por conta própria um alimento que já causou reação: isso se faz com acompanhamento.";
 
+/* Filtro da aba Alimentação: a pessoa marca o que não pode comer e o plano
+   se reorganiza. Vale mais que avisar depois — o alimento problemático nem
+   chega a ser recomendado. */
+const DIET_OPTIONS = [
+  { id: "peixe", label: "Alergia a peixe" },
+  { id: "frutosdomar", label: "Alergia a frutos do mar" },
+  { id: "oleaginosa", label: "Alergia a castanhas e nozes" },
+  { id: "ovo", label: "Alergia a ovo" },
+  { id: "leite", label: "Alergia ao leite ou intolerância à lactose" },
+  { id: "gluten", label: "Doença celíaca ou sem glúten" },
+  { id: "vegetariano", label: "Vegetariano" },
+  { id: "vegano", label: "Vegano" },
+  { id: "gestante", label: "Grávida ou amamentando" },
+];
+
+/* Quais restrições conflitam com cada item do plano. */
+const FOOD_RESTRICTIONS = {
+  "Peixes gordos (sardinha, salmão, atum)": ["peixe", "vegetariano"],
+  "Ovos": ["ovo", "vegano"],
+  "Castanhas, nozes, chia e linhaça": ["oleaginosa"],
+  "Carboidrato integral (arroz integral, aveia, batata-doce)": ["gluten"],
+  "Carne vermelha magra, frango, peixe": ["peixe", "vegetariano"],
+  "Semente de abóbora, castanha de caju, carne, frutos do mar": ["oleaginosa", "frutosdomar", "vegetariano"],
+  "Ovos, laticínios, peixes gordos": ["ovo", "leite", "peixe", "vegetariano"],
+  "Peixes, castanhas e sementes": ["peixe", "oleaginosa", "vegetariano"],
+  "Peixes, legumes, frutas, leguminosas e oleaginosas": ["peixe", "oleaginosa", "vegetariano"],
+};
+
+/* Gestação não retira alimento do plano — muda o que precisa ser conversado
+   no pré-natal. Por isso entra como nota, e não como filtro. */
+const GESTANTE_NOTES = [
+  "Peixes de grande porte (tubarão, peixe-espada, cavala-rei e atum em excesso) acumulam mercúrio e têm consumo limitado na gestação. Sardinha e salmão continuam entre as opções bem aceitas — confirme a frequência no seu pré-natal.",
+  "Fígado e suplementos de vitamina A são desaconselhados no período, pelo risco próprio do excesso de vitamina A. Este plano já não inclui fígado por esse motivo.",
+  "Chá verde tem cafeína e taninos: a recomendação de cafeína é mais restrita na gestação, e os taninos competem com a absorção do ferro — que costuma ser exatamente o ponto de atenção da fase.",
+  "Nenhum suplemento por conta própria. Ferro, vitamina D e ácido fólico na gestação são prescritos e acompanhados, e a dose faz diferença nos dois sentidos.",
+];
+
 const SUBSTITUTIONS = [
   {
+    keys: ["peixe", "frutosdomar"],
     out: "Não come peixe ou frutos do mar",
     keep: "ômega-3 e vitamina D",
     into: "Chia, linhaça e nozes cobrem a gordura insaturada. Para vitamina D, ovo, alimentos fortificados e exposição solar — e, se houver suspeita de deficiência, exame antes de qualquer reposição.",
+    intoVeg: "Chia, linhaça, nozes e algas cobrem a gordura insaturada. A vitamina D passa a depender de sol e de alimentos fortificados — é um dos pontos que mais pedem exame e acompanhamento em dieta sem produto animal.",
   },
   {
+    keys: ["oleaginosa"],
     out: "Alergia a castanhas e nozes",
     keep: "gordura boa e zinco",
     into: "Azeite de oliva, abacate e sementes (abóbora, girassol) quando toleradas. Zinco também vem de carnes. Atenção à contaminação cruzada: produtos 'pode conter' não servem para alergia verdadeira.",
+    intoVeg: "Azeite de oliva, abacate e sementes (abóbora, girassol) quando toleradas. Sem castanhas e sem carne, o zinco fica restrito a leguminosas e grãos integrais, de onde se absorve menos — essa combinação de restrições é a que mais pede acompanhamento profissional. Atenção à contaminação cruzada: produtos 'pode conter' não servem para alergia verdadeira.",
   },
   {
+    keys: ["ovo"],
     out: "Alergia a ovo",
     keep: "proteína completa",
     into: "Carnes, peixes, e a combinação de leguminosa com cereal (arroz com feijão) fecham o perfil de aminoácidos sem ovo.",
+    intoVeg: "Leguminosa com cereal — arroz com feijão, grão-de-bico com trigo — fecha o perfil de aminoácidos sem nenhum produto animal.",
   },
   {
+    keys: ["leite"],
     out: "Alergia à proteína do leite ou intolerância à lactose",
     keep: "proteína e cálcio",
     into: "Carnes, ovos, leguminosas e vegetais verde-escuros. Intolerância à lactose e alergia ao leite são coisas diferentes — a primeira admite versões sem lactose, a segunda exige exclusão total.",
+    intoVeg: "Leguminosas, tofu, gergelim e vegetais verde-escuros. Sem laticínio e sem carne, cálcio e B12 passam a exigir atenção específica e acompanhamento.",
   },
   {
+    keys: ["gluten"],
     out: "Doença celíaca ou sensibilidade ao glúten",
     keep: "carboidrato integral",
     into: "Arroz integral, batata-doce, mandioca, milho e quinoa. Aveia é o ponto de atenção: costuma ser contaminada por trigo no processamento, então só a certificada sem glúten.",
   },
   {
+    keys: ["vegetariano", "vegano"],
     out: "Vegetariano ou vegano",
     keep: "ferro, zinco e B12",
     into: "Leguminosas e folhas escuras com fonte de vitamina C na mesma refeição melhoram o aproveitamento do ferro vegetal. B12 é o ponto que exige acompanhamento profissional — não se resolve só com escolha de alimento.",
@@ -1033,6 +1080,8 @@ function freshState() {
     openNutrient: null,
     openArticle: null,
     openPhase: 1,
+    diet: {},          // restrições marcadas na aba Alimentação
+    dietAnswered: false,
   };
 }
 
@@ -1564,8 +1613,54 @@ function renderTabHoje(p, dayIdx, day, streak, phase) {
 
 /* ------------------------------ aba ALIMENTAÇÃO ---------------------------- */
 
+/* vegano implica vegetariano — quem marca um está sujeito aos dois filtros */
+function dietHas(key) {
+  if (key === "vegetariano") return !!(state.diet.vegetariano || state.diet.vegano);
+  return !!state.diet[key];
+}
+
+/* restrições marcadas que conflitam com um item do plano */
+function conflictsOf(label) {
+  return (FOOD_RESTRICTIONS[label] || []).filter(dietHas);
+}
+
+function renderDietFilter() {
+  const box = document.getElementById("dietFilter");
+  const marcadas = DIET_OPTIONS.filter((o) => state.diet[o.id]);
+
+  box.innerHTML = `
+    <div class="card__title-row">
+      <h3 class="card__title">Tem algo que você não pode comer?</h3>
+      <span class="card__hint">${marcadas.length ? `${marcadas.length} marcado(s)` : "opcional"}</span>
+    </div>
+    <p class="card__text card__text--muted">
+      Marque o que se aplica a você e o plano abaixo se reorganiza: o alimento sai da
+      lista e a alternativa que preserva o mesmo nutriente entra no lugar. Fica salvo
+      neste navegador.
+    </p>
+    <div class="diet-chips">
+      ${DIET_OPTIONS.map((o) => `
+        <button class="diet-chip ${state.diet[o.id] ? "is-on" : ""}" data-diet="${o.id}"
+          aria-pressed="${!!state.diet[o.id]}">${esc(o.label)}</button>`).join("")}
+      <button class="diet-chip diet-chip--none ${state.dietAnswered && !marcadas.length ? "is-on" : ""}"
+        data-diet="__nenhuma">Nenhuma restrição</button>
+    </div>
+  `;
+
+  box.querySelectorAll("[data-diet]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.diet;
+      if (id === "__nenhuma") state.diet = {};
+      else state.diet[id] = !state.diet[id];
+      state.dietAnswered = true;
+      renderApp();
+    });
+  });
+}
+
 function renderTabComida(p) {
   const f = p.food;
+  renderDietFilter();
 
   document.getElementById("foodKicker").textContent = f.kicker;
   document.getElementById("foodHeadline").textContent = f.headline;
@@ -1602,8 +1697,77 @@ function renderTabComida(p) {
       <div class="food-item__tags">${srcTag(evidenceOf(i.food))}${allergenTags(i.food)}</div>
     </div>`;
 
-  document.getElementById("foodYes").innerHTML = f.yes.map((i) => foodItem(i, "yes")).join("");
+  // separa o que a pessoa pode comer do que precisa sair pelas restrições dela
+  const liberados = f.yes.filter((i) => conflictsOf(i.food).length === 0);
+  const retirados = f.yes.filter((i) => conflictsOf(i.food).length > 0);
+
+  document.getElementById("foodYes").innerHTML = liberados.map((i) => foodItem(i, "yes")).join("");
   document.getElementById("foodNo").innerHTML = f.no.map((i) => foodItem(i, "no")).join("");
+
+  // bloco de trocas — só existe quando há restrição marcada
+  const swapBox = document.getElementById("foodSwaps");
+  if (!retirados.length) {
+    swapBox.innerHTML = "";
+    swapBox.hidden = true;
+  } else {
+    swapBox.hidden = false;
+    // as substituições cobrem tanto a restrição marcada quanto os nutrientes
+    // que saíram junto: quem vira vegano perde peixe, ovo e leite de uma vez
+    const usadas = new Set();
+    retirados.forEach((i) => {
+      conflictsOf(i.food).forEach((k) => usadas.add(k));
+      (FOOD_ALLERGENS[i.food] || []).forEach((k) => usadas.add(k));
+    });
+    const subs = SUBSTITUTIONS.filter((s) => s.keys.some((k) => usadas.has(k)));
+
+    swapBox.innerHTML = `
+      <div class="card__title-row">
+        <h3 class="card__title">Trocado para você</h3>
+        <span class="card__hint">${retirados.length} item(ns) fora do seu plano</span>
+      </div>
+      <p class="card__text card__text--muted">
+        Estes itens saíram da sua lista pelas restrições que você marcou. Eles continuam
+        visíveis de propósito — para você saber o que foi retirado e por quê, em vez de
+        receber um plano encurtado sem explicação.
+      </p>
+      <div class="swap-list">
+        ${retirados.map((i) => `
+          <div class="swap">
+            <span class="swap__food">${esc(i.food)}</span>
+            <span class="swap__why">fora por: ${conflictsOf(i.food)
+              .map((k) => esc((DIET_OPTIONS.find((o) => o.id === k) || {}).label || k)).join(", ")}</span>
+          </div>`).join("")}
+      </div>
+      <div class="subs-list">
+        ${subs.map((s) => `
+          <div class="sub">
+            <div class="sub__head">
+              <span class="sub__out">${esc(s.out)}</span>
+              <span class="sub__keep">manter: ${esc(s.keep)}</span>
+            </div>
+            <p>${esc(dietHas("vegetariano") && s.intoVeg ? s.intoVeg : s.into)}</p>
+          </div>`).join("")}
+      </div>`;
+  }
+
+  // notas de gestação — não retiram alimento, mudam a conversa
+  const gest = document.getElementById("gestanteNotes");
+  if (!state.diet.gestante) {
+    gest.innerHTML = "";
+    gest.hidden = true;
+  } else {
+    gest.hidden = false;
+    gest.innerHTML = `
+      <div class="card__title-row">
+        <h3 class="card__title">Gestação e amamentação</h3>
+        <span class="card__hint">converse no pré-natal</span>
+      </div>
+      <p class="card__text card__text--muted">
+        Nada foi removido do seu plano por causa disso — o que muda são os pontos abaixo,
+        que precisam passar por quem acompanha a sua gestação.
+      </p>
+      <ul class="safety-list">${GESTANTE_NOTES.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>`;
+  }
 
   document.getElementById("foodCombos").innerHTML = f.combos.map((c) => `
     <div class="combo">
