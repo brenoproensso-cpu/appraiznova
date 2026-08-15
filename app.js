@@ -16,24 +16,6 @@
 const STORAGE_KEY = "raizNova.v2";
 const TOTAL_DAYS = 90;
 
-/* =============================================================================
-   ██  INTEGRAÇÃO — EDITE AQUI  ██
-   Captura de e-mail. Sem backend: um Google Apps Script publicado como app da
-   web recebe o lead, grava numa planilha e (opcionalmente) dispara o e-mail.
-   Passo a passo em integracoes/README.md.
-   ============================================================================= */
-
-const CONFIG = {
-  // Cole a URL do app da web do Apps Script (termina em /exec).
-  // Enquanto estiver vazia, o e-mail é só salvo neste navegador e a tela de
-  // captura NÃO promete envio — não prometa o que ainda não acontece.
-  sheetsEndpoint: "",
-
-  // true = o Apps Script também envia o resumo por e-mail para a pessoa.
-  // false = só grava o lead na planilha.
-  enviarEmail: true,
-};
-
 /* ---------------------------------------------------------------------------
    1) QUIZ — pergunta de entrada + trilhas por sexo
    --------------------------------------------------------------------------- */
@@ -1109,8 +1091,6 @@ function freshState() {
   return {
     screen: "welcome",
     name: "",
-    email: "",
-    emailSkipped: false,
     quizIndex: 0,
     answers: {},
     tab: "hoje",
@@ -1223,7 +1203,7 @@ const firstName = () => (state.name || "").trim().split(/\s+/)[0] || "";
 function render() {
   const r = {
     welcome: renderWelcome, quiz: renderQuiz, analise: renderAnalise,
-    captura: renderCaptura, result: renderResult, dashboard: renderApp,
+    result: renderResult, dashboard: renderApp,
   }[state.screen] || renderWelcome;
   r();
 }
@@ -1347,128 +1327,9 @@ function renderAnalise() {
     }, 450 + i * 520));
   });
   analiseTimers.push(setTimeout(() => {
-    state.screen = state.email || state.emailSkipped ? "result" : "captura";
+    state.screen = "result";
     render();
   }, 450 + ANALISE_STEPS.length * 520 + 450));
-}
-
-/* ------------------------------- captura de e-mail ------------------------- */
-
-function renderCaptura() {
-  app.innerHTML = "";
-  app.appendChild(clone("tpl-captura"));
-  const who = firstName();
-  document.getElementById("capturaTitle").textContent =
-    who ? `${who}, o seu plano está pronto.` : "O seu plano está pronto.";
-  document.getElementById("capturaLede").textContent =
-    "Identificamos o padrão mais provável para o seu caso e montamos um plano de 90 dias com rotina, alimentação e leituras específicas para ele.";
-
-  // sem integração configurada o app não promete envio — ver CONFIG no topo
-  const envia = !!CONFIG.sheetsEndpoint && CONFIG.enviarEmail;
-  document.getElementById("emailLabel").textContent =
-    envia ? "Para onde enviamos a sua cópia?" : "Deixe seu e-mail para guardar o seu plano";
-  document.getElementById("emailFine").textContent = envia
-    ? "Enviamos o seu plano e o acompanhamento dos 90 dias. Nada de spam, e você pode sair quando quiser."
-    : "Por enquanto o seu e-mail fica salvo apenas neste navegador — o envio automático ainda não está ativo.";
-
-  const input = document.getElementById("emailInput");
-  const err = document.getElementById("emailErr");
-  input.value = state.email || "";
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") document.querySelector('[data-action="submit-email"]').click();
-  });
-  input.addEventListener("input", () => { err.hidden = true; });
-  saveState();
-}
-
-/* Monta o resumo que vai por e-mail. Fica aqui, e não no Apps Script, para o
-   conteúdo ter uma fonte só: melhorou o texto no app, o e-mail acompanha. */
-function buildResumo(p) {
-  const nome = firstName();
-  const receitas = p.recipes
-    .filter((rid) => recipeBlocks(rid).length === 0)
-    .map((rid) => `${RECIPES[rid].name} — ${RECIPES[rid].freq}`);
-  const comer = p.food.yes
-    .filter((i) => conflictsOf(i.food).length === 0)
-    .slice(0, 4)
-    .map((i) => `${i.food} (${i.how})`);
-
-  const linhas = [
-    ["Seu perfil", p.name],
-    ["", p.desc],
-    ["Onde focar", p.focus.map((f) => `${f.title}: ${f.text}`).join("\n")],
-    ["Alimentação", `${p.food.headline}\n\nComece por:\n- ${comer.join("\n- ")}`],
-    ["Suas receitas", receitas.length ? `- ${receitas.join("\n- ")}` : "Veja as liberadas para o seu perfil no app."],
-    ["Seus 90 dias", PHASES.map((f) => `Fase ${f.id} · ${f.name} (dias ${f.from}–${f.to}): ${f.tagline}. ${f.expect}`).join("\n\n")],
-  ];
-  if (p.redFlag && p.redFlagList.length) {
-    linhas.splice(2, 0, ["Vale atenção a mais", p.redFlagList.join(" ")]);
-  }
-
-  const aviso = "Este material é educativo. Não faz diagnóstico, não é consulta médica e não substitui a avaliação de um dermatologista.";
-  const texto = [
-    nome ? `${nome}, aqui está o seu plano.` : "Aqui está o seu plano.",
-    ...linhas.map(([t, c]) => (t ? `\n## ${t}\n${c}` : c)),
-    `\nContinue no app: ${location.href}`,
-    `\n---\n${aviso}`,
-  ].join("\n");
-
-  const html = `
-    <div style="font-family:Georgia,serif;max-width:600px;color:#2B2320;line-height:1.6">
-      <p style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B2604A;margin:0 0 6px">✦ Protocolo Raiz Nova</p>
-      <h1 style="font-size:24px;color:#4A2C3B;margin:0 0 18px">${esc(nome ? `${nome}, aqui está o seu plano.` : "Aqui está o seu plano.")}</h1>
-      ${linhas.map(([t, c]) => (t
-        ? `<h2 style="font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:#7A6D66;margin:24px 0 6px">${esc(t)}</h2>
-           <div style="white-space:pre-line">${esc(c)}</div>`
-        : `<div style="white-space:pre-line;color:#7A6D66">${esc(c)}</div>`)).join("")}
-      <p style="margin:28px 0"><a href="${esc(location.href)}"
-        style="background:#4A2C3B;color:#FBF6F2;padding:12px 22px;border-radius:999px;text-decoration:none">Continuar no app →</a></p>
-      <hr style="border:none;border-top:1px solid #E7D9D1;margin:24px 0">
-      <p style="font-size:12px;color:#7A6D66">${esc(aviso)}</p>
-    </div>`;
-
-  return { assunto: `Seu diagnóstico: ${p.name}`, texto, html };
-}
-
-/* Envio best-effort: a pessoa nunca fica presa por causa da integração. */
-function enviarLead(p) {
-  if (!CONFIG.sheetsEndpoint) return;
-  const resumo = buildResumo(p);
-  const payload = {
-    nome: state.name || "",
-    email: state.email,
-    sexo: p.sex === "f" ? "feminino" : p.sex === "m" ? "masculino" : "",
-    perfil: p.name,
-    perfilKey: p.key,
-    restricoes: DIET_OPTIONS.filter((o) => state.diet[o.id]).map((o) => o.label).join(", "),
-    respostas: JSON.stringify(state.answers),
-    origem: location.href,
-    enviarEmail: CONFIG.enviarEmail,
-    assunto: resumo.assunto,
-    corpoHtml: resumo.html,
-    corpoTexto: resumo.texto,
-  };
-  // text/plain evita o preflight CORS, que o Apps Script não responde bem
-  fetch(CONFIG.sheetsEndpoint, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload),
-  }).catch(() => { /* falha de rede não pode travar o resultado */ });
-}
-
-function submitEmail() {
-  const input = document.getElementById("emailInput");
-  const err = document.getElementById("emailErr");
-  const value = (input.value || "").trim();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
-    err.hidden = false;
-    input.focus();
-    return;
-  }
-  state.email = value;
-  enviarLead(currentProfile());
-  state.screen = "result";
-  render();
 }
 
 /* ---------------------------------- resultado ------------------------------ */
@@ -2147,12 +2008,6 @@ document.addEventListener("click", (e) => {
       state.screen = "analise";
       render();
     }
-  }
-  if (action === "submit-email") submitEmail();
-  if (action === "skip-email") {
-    state.emailSkipped = true;
-    state.screen = "result";
-    render();
   }
   if (action === "go-dashboard") {
     state.screen = "dashboard";

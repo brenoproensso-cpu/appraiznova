@@ -565,16 +565,16 @@ main{ position: relative; z-index: 1; }
 /* NOME, INSIGHT, ANÁLISE E CAPTURA                                          */
 /* ======================================================================== */
 .name-field{ margin: 0 0 1.6rem; max-width: 26rem; }
-.name-field label, .capture-card label{
+.name-field label{
   display:block; font-size:.76rem; font-weight:700; letter-spacing:.1em;
   text-transform:uppercase; color: var(--muted); margin-bottom:.5rem;
 }
-.name-field input, .capture-card input{
+.name-field input{
   width:100%; font-family: var(--font-body); font-size:1rem; color: var(--ink);
   background: var(--paper); border:1.5px solid var(--line); border-radius:14px;
   padding:.9rem 1rem; transition: border-color .18s ease;
 }
-.name-field input:focus, .capture-card input:focus{ outline:none; border-color: var(--terracota); }
+.name-field input:focus{ outline:none; border-color: var(--terracota); }
 
 .insight{
   display:flex; gap:.8rem; align-items:flex-start;
@@ -600,19 +600,6 @@ main{ position: relative; z-index: 1; }
   content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
   color: var(--paper); font-size:.7rem; font-weight:700;
 }
-
-.capture-card{
-  background: var(--paper); border:1px solid var(--line); border-radius: var(--radius);
-  padding:1.6rem 1.7rem; box-shadow: var(--shadow-soft); max-width: 30rem;
-}
-.capture-card .btn{ width:100%; justify-content:center; margin-top:1rem; }
-.capture-card__err{ margin:.5rem 0 0; font-size:.82rem; color: var(--terracota-deep); }
-.capture-card__fine{ margin:1rem 0 0; font-size:.78rem; color: var(--muted); line-height:1.55; }
-.link-skip{
-  display:inline-block; margin-top:1.2rem; background:none; border:none; cursor:pointer;
-  font-family: var(--font-body); font-size:.85rem; color: var(--muted); text-decoration:underline;
-}
-.link-skip:hover{ color: var(--plum); }
 
 /* ======================================================================== */
 /* FASES DOS 90 DIAS                                                         */

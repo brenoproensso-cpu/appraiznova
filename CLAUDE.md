@@ -80,4 +80,6 @@ dashboard, e conferir o console sem erros.
 ## Integrações pendentes
 
 - `UPSELLS.advanced.checkoutUrl` e `UPSELLS.club.checkoutUrl` ainda são placeholder.
-- `CONFIG.sheetsEndpoint` liga a captura de e-mail ao Google Sheets (ver `integracoes/`).
+
+Não há captura de e-mail: o fluxo vai do quiz direto ao resultado, e nenhum dado sai
+do navegador. Se um dia voltar, a implementação anterior está no histórico do git.
