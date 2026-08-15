@@ -16,6 +16,22 @@
 const STORAGE_KEY = "raizNova.v2";
 const TOTAL_DAYS = 90;
 
+/* =============================================================================
+   ██  ACOMPANHAMENTO — EDITE AQUI  ██
+   O app é entregável pós-compra: quem chega aqui já é cliente. O progresso vai
+   para uma planilha para você acompanhar quem está seguindo o plano e quem
+   parou. Passo a passo em integracoes/README.md.
+
+   O que NÃO sobe, por decisão de projeto: o humor e as anotações do diário.
+   São da pessoa. O que serve para acompanhar é constância, não desabafo.
+   ============================================================================= */
+
+const CONFIG = {
+  // URL do app da web do Apps Script (termina em /exec).
+  // Vazio = nada é enviado e o app funciona 100% offline.
+  sheetsEndpoint: "",
+};
+
 /* ---------------------------------------------------------------------------
    1) QUIZ — pergunta de entrada + trilhas por sexo
    --------------------------------------------------------------------------- */
@@ -1091,6 +1107,8 @@ function freshState() {
   return {
     screen: "welcome",
     name: "",
+    email: "",        // e-mail usado na compra — identifica a pessoa na planilha
+    startedAt: "",
     quizIndex: 0,
     answers: {},
     tab: "hoje",
@@ -1211,14 +1229,26 @@ function render() {
 function renderWelcome() {
   app.innerHTML = "";
   app.appendChild(clone("tpl-welcome"));
-  const input = document.getElementById("nameInput");
-  input.value = state.name || "";
-  input.addEventListener("input", () => { state.name = input.value; });
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") document.querySelector('[data-action="start-quiz"]').click();
+
+  const nome = document.getElementById("nameInput");
+  const email = document.getElementById("emailInput");
+  nome.value = state.name || "";
+  email.value = state.email || "";
+  nome.addEventListener("input", () => { state.name = nome.value; });
+  email.addEventListener("input", () => {
+    state.email = email.value;
+    document.getElementById("emailErr").hidden = true;
   });
+  [nome, email].forEach((el) => el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") document.querySelector('[data-action="start-quiz"]').click();
+  }));
+
+  // a linha de transparência só aparece quando algo de fato sai do dispositivo
+  document.getElementById("syncNote").hidden = !CONFIG.sheetsEndpoint;
   saveState();
 }
+
+const emailValido = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || "").trim());
 
 function renderQuiz() {
   app.innerHTML = "";
@@ -1332,6 +1362,43 @@ function renderAnalise() {
   }, 450 + ANALISE_STEPS.length * 520 + 450));
 }
 
+/* ---------------------------------------------------------------------------
+   SINCRONIZAÇÃO DO PROGRESSO
+   Best-effort e silenciosa: falha de rede nunca pode atrapalhar quem está
+   usando o app. Sobe constância, não conteúdo pessoal — humor e anotações do
+   diário ficam no dispositivo.
+   --------------------------------------------------------------------------- */
+
+let syncTimer = null;
+
+function syncProgresso() {
+  if (!CONFIG.sheetsEndpoint || !emailValido(state.email)) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    const p = currentProfile();
+    const dias = state.days.filter(Boolean).length;
+    const diaAtual = Math.min(currentDayIndex() + 1, TOTAL_DAYS);
+    const payload = {
+      email: state.email.trim().toLowerCase(),
+      nome: state.name || "",
+      sexo: p.sex === "f" ? "feminino" : p.sex === "m" ? "masculino" : "",
+      perfil: p.name,
+      restricoes: DIET_OPTIONS.filter((o) => state.diet[o.id]).map((o) => o.label).join(", "),
+      inicio: state.startedAt || "",
+      ultimaAtividade: new Date().toISOString(),
+      diasConcluidos: dias,
+      fase: `${phaseOfDay(diaAtual).id} · ${phaseOfDay(diaAtual).name}`,
+      fotos: PHOTO_DAYS.filter((f) => state.photos[f.day]).map((f) => f.label).join(", "),
+      respostas: JSON.stringify(state.answers),
+    };
+    fetch(CONFIG.sheetsEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    }).catch(() => { /* sem rede, tenta de novo na próxima interação */ });
+  }, 1500);
+}
+
 /* ---------------------------------- resultado ------------------------------ */
 
 function renderResult() {
@@ -1361,6 +1428,8 @@ function renderResult() {
   `).join("");
 
   const offer = UPSELLS.advanced.resultByProfile[p.key];
+  syncProgresso();
+
   document.getElementById("resultUpsell").innerHTML = `
     <div class="upsell-card">
       <span class="upsell-card__badge">${UPSELLS.advanced.badge}</span>
@@ -1420,6 +1489,8 @@ function renderApp() {
   panel.innerHTML = "";
   const tab = TABS.find((t) => t.id === state.tab) || TABS[0];
   panel.appendChild(clone(tab.tpl));
+
+  syncProgresso();
 
   if (tab.id === "hoje") renderTabHoje(p, dayIdx, day, streak, phase);
   if (tab.id === "comida") renderTabComida(p);
@@ -1988,8 +2059,17 @@ document.addEventListener("click", (e) => {
   if (!action) return;
 
   if (action === "start-quiz") {
-    const input = document.getElementById("nameInput");
-    if (input) state.name = input.value;
+    const nome = document.getElementById("nameInput");
+    const email = document.getElementById("emailInput");
+    if (nome) state.name = nome.value;
+    if (email) state.email = email.value.trim();
+    // o e-mail da compra só é exigido quando há planilha ligada do outro lado
+    if (CONFIG.sheetsEndpoint && !emailValido(state.email)) {
+      document.getElementById("emailErr").hidden = false;
+      email.focus();
+      return;
+    }
+    if (!state.startedAt) state.startedAt = new Date().toISOString();
     state.screen = "quiz";
     state.quizIndex = 0;
     render();

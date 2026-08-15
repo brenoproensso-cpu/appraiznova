@@ -81,5 +81,15 @@ dashboard, e conferir o console sem erros.
 
 - `UPSELLS.advanced.checkoutUrl` e `UPSELLS.club.checkoutUrl` ainda são placeholder.
 
-Não há captura de e-mail: o fluxo vai do quiz direto ao resultado, e nenhum dado sai
-do navegador. Se um dia voltar, a implementação anterior está no histórico do git.
+- `CONFIG.sheetsEndpoint` liga o acompanhamento ao Google Sheets (ver `integracoes/`).
+  Vazio = o app não pede e-mail e funciona 100% offline.
+
+## Acompanhamento e privacidade
+
+O app é entregável **pós-compra**: quem chega já é cliente. Com o endpoint configurado,
+o progresso vai para uma planilha (uma linha por e-mail, atualizada) para acompanhar
+quem segue o plano e quem parou.
+
+**O humor e as anotações do diário nunca são enviados.** A pessoa é avisada na tela de
+que aquele espaço é só dela. Não adicione esses campos ao payload de `syncProgresso()`
+nem ao Apps Script — a promessa está escrita na interface.

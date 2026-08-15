@@ -47,13 +47,25 @@
     <div class="name-field">
       <label for="nameInput">Como você se chama?</label>
       <input id="nameInput" type="text" autocomplete="given-name" maxlength="40"
-        placeholder="Seu primeiro nome" enterkeyhint="go">
+        placeholder="Seu primeiro nome" enterkeyhint="next">
+    </div>
+
+    <div class="name-field">
+      <label for="emailInput">Qual e-mail você usou na compra?</label>
+      <input id="emailInput" type="email" autocomplete="email" inputmode="email"
+        placeholder="seu@email.com" enterkeyhint="go">
+      <p class="capture-err" id="emailErr" hidden>Digite o e-mail da sua compra para continuar.</p>
     </div>
 
     <button class="btn btn--primary btn--lg" data-action="start-quiz">
       Começar meu diagnóstico <span class="btn__arrow">→</span>
     </button>
-    <p class="fineprint">Leva menos de 2 minutos. Suas respostas ficam salvas só neste navegador.</p>
+    <p class="fineprint">Leva menos de 2 minutos.</p>
+    <p class="fineprint" id="syncNote" hidden>
+      Seu progresso nos 90 dias fica visível para a equipe do Protocolo, para acompanhar
+      quem está seguindo o plano. <strong>O diário não:</strong> humor e anotações ficam
+      só neste aparelho e ninguém além de você lê.
+    </p>
     <p class="disclaimer disclaimer--welcome">
       <strong>Conteúdo educativo.</strong> Este material não é consulta médica, não faz
       diagnóstico e não substitui a avaliação de um dermatologista.
@@ -187,7 +199,8 @@
       <h2 class="card__title">Como você se sentiu hoje?</h2>
       <p class="card__text card__text--muted">
         Registrar o dia ajuda a enxergar padrão — queda costuma acompanhar fases,
-        não dias isolados.
+        não dias isolados. <strong>Este espaço é só seu:</strong> humor e anotações
+        ficam neste aparelho e não são compartilhados com ninguém.
       </p>
       <div class="mood-row" id="moodRow"></div>
       <textarea id="dayNote" class="note-field" rows="3"

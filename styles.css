@@ -575,6 +575,7 @@ main{ position: relative; z-index: 1; }
   padding:.9rem 1rem; transition: border-color .18s ease;
 }
 .name-field input:focus{ outline:none; border-color: var(--terracota); }
+.capture-err{ margin:.5rem 0 0; font-size:.82rem; color: var(--terracota-deep); }
 
 .insight{
   display:flex; gap:.8rem; align-items:flex-start;
