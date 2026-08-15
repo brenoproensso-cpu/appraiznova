@@ -561,8 +561,31 @@ const DIET_OPTIONS = [
   { id: "gluten", label: "Doença celíaca ou sem glúten" },
   { id: "vegetariano", label: "Vegetariano" },
   { id: "vegano", label: "Vegano" },
+  { id: "latex", label: "Alergia a látex (abacate, banana, kiwi)" },
+  { id: "couro", label: "Couro cabeludo sensível, com dermatite ou ferida" },
   { id: "gestante", label: "Grávida ou amamentando" },
 ];
+
+/* Quais marcadores desaconselham cada receita. O critério aqui é diferente do
+   da comida: uso tópico com teste de contato não é o mesmo que ingerir um
+   alérgeno. Por isso a receita não some — ela aparece bloqueada, com o motivo. */
+const RECIPE_RESTRICTIONS = {
+  "tonico-alecrim": ["oleaginosa", "couro", "gestante"],
+  "mascara-abacate": ["latex"],
+  "enxague-vinagre": ["couro"],
+  "mascara-babosa": ["vegano", "couro"],
+  "oleo-ricino": ["oleaginosa"],
+  "spray-arroz": [],
+};
+
+/* Por que cada marcador desaconselha — texto mostrado no lugar da receita. */
+const RECIPE_REASONS = {
+  oleaginosa: "leva óleo de coco ou de girassol; coco é tratado como castanha em várias classificações de alérgenos",
+  latex: "leva abacate, que reage cruzado com alergia a látex (a chamada síndrome látex-fruta)",
+  couro: "é aplicada no couro cabeludo, e pele lesada, inflamada ou com dermatite não deve receber preparo caseiro",
+  vegano: "leva mel, de origem animal",
+  gestante: "leva alecrim, cujo uso costuma ser evitado na gestação sem orientação profissional",
+};
 
 /* Quais restrições conflitam com cada item do plano. */
 const FOOD_RESTRICTIONS = {
@@ -1448,7 +1471,12 @@ function renderApp() {
 /* --------------------------------- aba HOJE -------------------------------- */
 
 function renderTabHoje(p, dayIdx, day, streak, phase) {
-  const recipeName = RECIPES[p.recipes[0]].name.toLowerCase();
+  // a rotina não pode mandar usar uma receita que o filtro bloqueou para a pessoa
+  const liberadaDoPerfil = p.recipes.find((rid) => recipeBlocks(rid).length === 0)
+    || Object.keys(RECIPES).find((rid) => recipeBlocks(rid).length === 0);
+  const recipeName = liberadaDoPerfil
+    ? RECIPES[liberadaDoPerfil].name.toLowerCase()
+    : "uma receita liberada para você na aba Receitas";
 
   document.getElementById("phaseCard").innerHTML = `
     <div class="phase-head">
@@ -1624,20 +1652,28 @@ function conflictsOf(label) {
   return (FOOD_RESTRICTIONS[label] || []).filter(dietHas);
 }
 
-function renderDietFilter() {
-  const box = document.getElementById("dietFilter");
+function renderDietFilter(elId, contexto) {
+  const box = document.getElementById(elId);
+  if (!box) return;
   const marcadas = DIET_OPTIONS.filter((o) => state.diet[o.id]);
+
+  const textos = {
+    comida: {
+      titulo: "Tem algo que você não pode comer?",
+      texto: "Marque o que se aplica a você e o plano abaixo se reorganiza: o alimento sai da lista e a alternativa que preserva o mesmo nutriente entra no lugar. Vale também para a aba de Receitas, e fica salvo neste navegador.",
+    },
+    receitas: {
+      titulo: "Tem alergia, restrição ou couro cabeludo sensível?",
+      texto: "As mesmas marcações da aba Alimentação valem aqui. Receitas com ingrediente desaconselhado para você aparecem bloqueadas, com o motivo — em vez de sumirem sem explicação.",
+    },
+  }[contexto];
 
   box.innerHTML = `
     <div class="card__title-row">
-      <h3 class="card__title">Tem algo que você não pode comer?</h3>
+      <h3 class="card__title">${textos.titulo}</h3>
       <span class="card__hint">${marcadas.length ? `${marcadas.length} marcado(s)` : "opcional"}</span>
     </div>
-    <p class="card__text card__text--muted">
-      Marque o que se aplica a você e o plano abaixo se reorganiza: o alimento sai da
-      lista e a alternativa que preserva o mesmo nutriente entra no lugar. Fica salvo
-      neste navegador.
-    </p>
+    <p class="card__text card__text--muted">${textos.texto}</p>
     <div class="diet-chips">
       ${DIET_OPTIONS.map((o) => `
         <button class="diet-chip ${state.diet[o.id] ? "is-on" : ""}" data-diet="${o.id}"
@@ -1660,7 +1696,7 @@ function renderDietFilter() {
 
 function renderTabComida(p) {
   const f = p.food;
-  renderDietFilter();
+  renderDietFilter("dietFilter", "comida");
 
   document.getElementById("foodKicker").textContent = f.kicker;
   document.getElementById("foodHeadline").textContent = f.headline;
@@ -1831,12 +1867,49 @@ function renderTabComida(p) {
 
 /* -------------------------------- aba RECEITAS ----------------------------- */
 
-function renderTabReceitas(p) {
-  const ordered = [...p.recipes, ...Object.keys(RECIPES).filter((k) => !p.recipes.includes(k))];
+/* marcadores que desaconselham uma receita para esta pessoa */
+function recipeBlocks(rid) {
+  return (RECIPE_RESTRICTIONS[rid] || []).filter(dietHas);
+}
 
-  document.getElementById("recipeFull").innerHTML = ordered.map((rid, idx) => {
+function renderTabReceitas(p) {
+  renderDietFilter("dietFilterRecipes", "receitas");
+
+  const todas = [...p.recipes, ...Object.keys(RECIPES).filter((k) => !p.recipes.includes(k))];
+  const liberadas = todas.filter((rid) => recipeBlocks(rid).length === 0);
+  const bloqueadas = todas.filter((rid) => recipeBlocks(rid).length > 0);
+
+  const aviso = document.getElementById("recipeFilterNote");
+  aviso.hidden = bloqueadas.length === 0;
+  if (bloqueadas.length) {
+    aviso.innerHTML = `<strong>${bloqueadas.length} receita(s) fora do seu perfil.</strong>
+      Elas continuam listadas no fim, bloqueadas e com o motivo — porque saber por que
+      algo não serve para você vale mais que a receita sumir da tela.`;
+  }
+
+  const bloqueadasHtml = bloqueadas.map((rid) => {
     const r = RECIPES[rid];
-    const mine = idx < p.recipes.length;
+    const motivos = recipeBlocks(rid).map((k) => RECIPE_REASONS[k]).filter(Boolean);
+    return `
+      <article class="recipe-card recipe-card--blocked">
+        <header class="recipe-card__head">
+          <div>
+            <span class="pill pill--blocked">não indicada para você</span>
+            <h3>${esc(r.name)}</h3>
+            <p class="recipe-card__sub">${esc(r.text)}</p>
+          </div>
+        </header>
+        <p class="recipe-card__blockwhy">
+          Está bloqueada porque ${motivos.join("; e ")}.
+          O preparo fica oculto de propósito — se quiser usar mesmo assim, converse antes
+          com um profissional de saúde.
+        </p>
+      </article>`;
+  }).join("");
+
+  document.getElementById("recipeFull").innerHTML = liberadas.map((rid) => {
+    const r = RECIPES[rid];
+    const mine = p.recipes.includes(rid);
     return `
       <article class="recipe-card ${mine ? "recipe-card--mine" : ""}">
         <header class="recipe-card__head">
@@ -1867,7 +1940,7 @@ function renderTabReceitas(p) {
         </div>
         <p class="recipe-card__caution">⚠︎ ${esc(r.caution)}</p>
       </article>`;
-  }).join("");
+  }).join("") + bloqueadasHtml;
 
   document.getElementById("safetyRecipes").innerHTML = SAFETY_RECIPES
     .map((s) => `<li>${s}</li>`).join("");
