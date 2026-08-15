@@ -383,6 +383,31 @@ main{ position: relative; z-index: 1; }
 .src--lab{ background: var(--warn-bg); color: #8A5520; border:1px solid var(--warn-line); }
 .src--cosm{ background: var(--cream); color: var(--muted); border:1px solid var(--line); }
 
+.food-item__tags{ display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
+.allergens{
+  display:inline-block; margin-top:.6rem;
+  font-size:.64rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  padding:.26rem .6rem; border-radius:999px; line-height:1.35;
+  background: #F6DFD6; color: #9A3E1E; border:1px solid #E0A48C;
+}
+.allergens--inline{ margin:0; vertical-align:middle; }
+
+/* alergias e substituições */
+.card--allergy{ border-color: #E0A48C; }
+.alert--danger{
+  background: #FBEAE3; border:1px solid #E0A48C; color: #8A3316;
+  font-weight:500; margin: .2rem 0 1.2rem;
+}
+.subs-list{ display:flex; flex-direction:column; gap:.9rem; margin-top:1rem; }
+.sub{ background: var(--cream); border-radius:14px; padding:1rem 1.1rem; }
+.sub__head{ display:flex; justify-content:space-between; gap:.8rem; flex-wrap:wrap; margin-bottom:.4rem; }
+.sub__out{ font-weight:700; color: var(--plum); font-size:.92rem; }
+.sub__keep{
+  font-size:.68rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  color: var(--sage-deep); background:#DCE3D6; padding:.26rem .6rem; border-radius:999px; white-space:nowrap;
+}
+.sub p{ margin:0; font-size:.87rem; color: var(--muted); line-height:1.6; }
+
 /* bloco de segurança */
 .card--safety{ background: var(--warn-bg); border-color: var(--warn-line); }
 .card--safety .card__title{ color: #7A4A1F; }

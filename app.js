@@ -517,11 +517,76 @@ const evidenceOf = (label) => (FOOD_GERAL.has(label) ? "geral" : "lit");
 const RECIPE_EVIDENCE = { "tonico-alecrim": "lab" };
 const recipeEvidenceOf = (id) => RECIPE_EVIDENCE[id] || "cosm";
 
+/* ---------------------------------------------------------------------------
+   ALERGIAS E INTOLERÂNCIAS
+   O plano alimentar recomenda peixe, frutos do mar, castanhas, ovo, leite e
+   aveia — seis dos alimentos que mais causam reação. Um plano que sugere
+   comida sem sinalizar isso transfere para o leitor um risco que é nosso.
+   Esta seção NÃO vem das revisões sobre queda capilar: é informação de
+   segurança alimentar, e está marcada como tal na tela.
+   --------------------------------------------------------------------------- */
+
+const ALLERGEN_LABELS = {
+  peixe: "peixe",
+  frutosdomar: "frutos do mar",
+  oleaginosa: "castanhas e nozes",
+  ovo: "ovo",
+  leite: "leite",
+  gluten: "glúten",
+};
+
+const FOOD_ALLERGENS = {
+  "Peixes gordos (sardinha, salmão, atum)": ["peixe"],
+  "Ovos": ["ovo"],
+  "Castanhas, nozes, chia e linhaça": ["oleaginosa"],
+  "Carboidrato integral (arroz integral, aveia, batata-doce)": ["gluten"],
+  "Carne vermelha magra, frango, peixe": ["peixe"],
+  "Semente de abóbora, castanha de caju, carne, frutos do mar": ["oleaginosa", "frutosdomar"],
+  "Ovos, laticínios, peixes gordos": ["ovo", "leite", "peixe"],
+  "Peixes, castanhas e sementes": ["peixe", "oleaginosa"],
+  "Peixes, legumes, frutas, leguminosas e oleaginosas": ["peixe", "oleaginosa"],
+};
+
+const ANAPHYLAXIS = "Inchaço de lábios, língua ou garganta, falta de ar, tontura ou urticária espalhada depois de comer é emergência médica — procure atendimento imediatamente, não espere passar. E nunca reintroduza por conta própria um alimento que já causou reação: isso se faz com acompanhamento.";
+
+const SUBSTITUTIONS = [
+  {
+    out: "Não come peixe ou frutos do mar",
+    keep: "ômega-3 e vitamina D",
+    into: "Chia, linhaça e nozes cobrem a gordura insaturada. Para vitamina D, ovo, alimentos fortificados e exposição solar — e, se houver suspeita de deficiência, exame antes de qualquer reposição.",
+  },
+  {
+    out: "Alergia a castanhas e nozes",
+    keep: "gordura boa e zinco",
+    into: "Azeite de oliva, abacate e sementes (abóbora, girassol) quando toleradas. Zinco também vem de carnes. Atenção à contaminação cruzada: produtos 'pode conter' não servem para alergia verdadeira.",
+  },
+  {
+    out: "Alergia a ovo",
+    keep: "proteína completa",
+    into: "Carnes, peixes, e a combinação de leguminosa com cereal (arroz com feijão) fecham o perfil de aminoácidos sem ovo.",
+  },
+  {
+    out: "Alergia à proteína do leite ou intolerância à lactose",
+    keep: "proteína e cálcio",
+    into: "Carnes, ovos, leguminosas e vegetais verde-escuros. Intolerância à lactose e alergia ao leite são coisas diferentes — a primeira admite versões sem lactose, a segunda exige exclusão total.",
+  },
+  {
+    out: "Doença celíaca ou sensibilidade ao glúten",
+    keep: "carboidrato integral",
+    into: "Arroz integral, batata-doce, mandioca, milho e quinoa. Aveia é o ponto de atenção: costuma ser contaminada por trigo no processamento, então só a certificada sem glúten.",
+  },
+  {
+    out: "Vegetariano ou vegano",
+    keep: "ferro, zinco e B12",
+    into: "Leguminosas e folhas escuras com fonte de vitamina C na mesma refeição melhoram o aproveitamento do ferro vegetal. B12 é o ponto que exige acompanhamento profissional — não se resolve só com escolha de alimento.",
+  },
+];
+
 /* Avisos de segurança que valem para qualquer perfil. */
 const SAFETY_FOOD = [
   "<strong>Gestação e amamentação mudam tudo.</strong> Necessidades, limites e alimentos desaconselhados são outros — inclusive fígado e suplementos de vitamina A. Nesta fase, qualquer ajuste alimentar deve passar por quem faz o seu pré-natal.",
   "<strong>Condições de saúde e medicamentos vêm antes deste plano.</strong> Doença renal, hepática, diabetes, distúrbios da tireoide, doença celíaca, hemocromatose (excesso de ferro) e uso contínuo de medicamentos exigem orientação individual. Se você tem qualquer uma, trate este material como leitura, não como plano.",
-  "<strong>Alergias e intolerâncias têm prioridade sobre qualquer recomendação daqui.</strong> Nenhum alimento citado é indispensável — todos têm substituto.",
+  "<strong>Alergias e intolerâncias têm prioridade sobre qualquer recomendação daqui.</strong> Nenhum alimento citado é indispensável — todos têm substituto, e a tabela logo abaixo mostra qual.",
   "<strong>Quantidade não é conteúdo educativo.</strong> As frequências sugeridas são pontos de partida de bom senso, não prescrição. Dose de nutriente e reposição só com médico ou nutricionista, a partir de exames.",
   "<strong>Nada aqui é indicação de suplemento.</strong> As revisões usadas apontam o contrário do que o mercado sugere: repor sem deficiência não traz ganho e, em vitamina A e selênio, causa queda.",
 ];
@@ -531,6 +596,7 @@ const SAFETY_RECIPES = [
   "<strong>Couro cabeludo com ferida, dor, descamação intensa ou inflamação não recebe receita caseira.</strong> Isso é avaliação médica, e insistir pode piorar o quadro.",
   "<strong>Nada de óleo essencial puro na pele.</strong> Alecrim aqui é infusão. Óleos essenciais concentrados são causa comum de dermatite de contato.",
   "<strong>Gestantes, lactantes, crianças e pessoas com dermatite, psoríase ou alergia a plantas</strong> devem confirmar com um profissional antes de usar qualquer preparo — inclusive os 'naturais'.",
+  "<strong>Alergia alimentar também reage na pele.</strong> Quem tem alergia a látex pode reagir a abacate (a chamada síndrome látex-fruta, que envolve ainda banana e kiwi); quem reage a plantas aromáticas pode reagir ao alecrim; a babosa é da mesma família do alho e da cebola. Se um ingrediente te faz mal comendo, não o use no cabelo.",
   "<strong>Preparo caseiro estraga.</strong> Respeite a validade indicada em cada receita e descarte o que sobrar.",
 ];
 
@@ -1522,12 +1588,18 @@ function renderTabComida(p) {
     const e = EVIDENCE[tier];
     return `<span class="src ${e.cls}">${e.label}</span>`;
   };
+  const allergenTags = (label) => {
+    const tags = FOOD_ALLERGENS[label] || [];
+    if (!tags.length) return "";
+    return `<span class="allergens" title="Contém alérgeno comum">⚠ contém ${
+      tags.map((t) => esc(ALLERGEN_LABELS[t])).join(" · ")}</span>`;
+  };
   const foodItem = (i, kind) => `
     <div class="food-item food-item--${kind}">
       <h4>${esc(i.food)}</h4>
       <span class="food-item__how">${esc(i.how)}</span>
       <p>${esc(i.why)}</p>
-      ${srcTag(evidenceOf(i.food))}
+      <div class="food-item__tags">${srcTag(evidenceOf(i.food))}${allergenTags(i.food)}</div>
     </div>`;
 
   document.getElementById("foodYes").innerHTML = f.yes.map((i) => foodItem(i, "yes")).join("");
@@ -1547,6 +1619,17 @@ function renderTabComida(p) {
 
   document.getElementById("safetyFood").innerHTML = SAFETY_FOOD
     .map((s) => `<li>${s}</li>`).join("");
+
+  document.getElementById("anaphylaxis").textContent = ANAPHYLAXIS;
+  document.getElementById("subsList").innerHTML = SUBSTITUTIONS.map((s) => `
+    <div class="sub">
+      <div class="sub__head">
+        <span class="sub__out">${esc(s.out)}</span>
+        <span class="sub__keep">manter: ${esc(s.keep)}</span>
+      </div>
+      <p>${esc(s.into)}</p>
+    </div>
+  `).join("");
 
   const nl = document.getElementById("nutrientList");
   nl.innerHTML = NUTRIENTS.map((n) => {
