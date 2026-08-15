@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Protocolo Raiz Nova — Seu plano personalizado</title>
+<meta name="description" content="Diagnóstico educativo de queda capilar em 7 perguntas: rotina de 21 dias, plano alimentar personalizado e biblioteca com base científica. Conteúdo educativo — não substitui avaliação médica.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Protocolo Raiz Nova — Seu plano personalizado">
+<meta property="og:description" content="Responda 7 perguntas e receba um plano de 21 dias com rotina, alimentação e conteúdo educativo sobre a sua queda de cabelo.">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -41,6 +47,10 @@
       Começar meu diagnóstico <span class="btn__arrow">→</span>
     </button>
     <p class="fineprint">Leva menos de 2 minutos. Suas respostas ficam salvas só neste navegador.</p>
+    <p class="disclaimer disclaimer--welcome">
+      <strong>Conteúdo educativo.</strong> Este material não é consulta médica, não faz
+      diagnóstico e não substitui a avaliação de um dermatologista.
+    </p>
   </section>
 </template>
 
@@ -76,12 +86,22 @@
     <button class="btn btn--primary btn--lg" data-action="go-dashboard">
       Ver meu plano completo <span class="btn__arrow">→</span>
     </button>
+
+    <p class="disclaimer">
+      <strong>Isto é uma orientação educativa, não um diagnóstico.</strong>
+      O nome do perfil acima descreve o padrão mais provável a partir das suas respostas —
+      só um dermatologista, com exame do couro cabeludo e exames de sangue, pode confirmar
+      a causa da sua queda.
+    </p>
   </section>
 </template>
 
-<template id="tpl-dashboard">
-  <section class="screen screen--dashboard">
-    <div class="dash__head">
+<!-- ============ APP (abas) ============ -->
+
+<template id="tpl-app">
+  <section class="screen screen--app">
+
+    <div class="app__head">
       <div>
         <p class="kicker">seu plano · dia <span id="dashDay">1</span> de 21</p>
         <h1 class="display display--md" id="dashProfileName"></h1>
@@ -92,38 +112,38 @@
       </div>
     </div>
 
-    <div id="day21Banner"></div>
-
     <div class="progress-track">
       <div class="progress-track__fill" id="dashProgressFill"></div>
     </div>
 
-    <div class="dash__grid">
+    <nav class="tabs" id="tabNav" role="tablist" aria-label="Seções do plano"></nav>
 
-      <article class="card card--routine">
+    <div id="tabPanel" class="tab-panel" role="tabpanel"></div>
+
+    <p class="disclaimer">
+      <strong>Conteúdo educativo — não é consulta médica.</strong>
+      Nada aqui substitui avaliação, diagnóstico ou tratamento de um profissional de saúde.
+      Se a queda for intensa, em placas, com coceira/descamação, ou não melhorar,
+      procure um dermatologista.
+    </p>
+
+  </section>
+</template>
+
+<!-- ---- painéis de aba ---- -->
+
+<template id="tpl-tab-hoje">
+  <div class="tab-content">
+    <div id="day21Banner"></div>
+
+    <article class="card card--routine">
+      <div class="card__title-row">
         <h2 class="card__title">Rotina de hoje</h2>
-        <ul class="checklist" id="todayChecklist"></ul>
-      </article>
-
-      <article class="card card--recipes">
-        <h2 class="card__title">Receitas recomendadas pra você</h2>
-        <div id="recipeList" class="recipe-list"></div>
-      </article>
-
-      <article class="card card--food">
-        <h2 class="card__title">Foco alimentar</h2>
-        <p id="foodFocusText" class="card__text"></p>
-        <div id="foodTags" class="tag-row"></div>
-      </article>
-
-      <article class="card card--chapters">
-        <h2 class="card__title">No guia, comece por aqui</h2>
-        <ol id="chapterList" class="chapter-list"></ol>
-      </article>
-
-      <article class="card card--locked" id="bonus4Card"></article>
-
-    </div>
+        <span class="card__hint">3 passos · ~10 min</span>
+      </div>
+      <ul class="checklist" id="todayChecklist"></ul>
+      <p class="card__foot" id="todayFoot"></p>
+    </article>
 
     <article class="card card--tracker">
       <div class="card__title-row">
@@ -131,9 +151,122 @@
         <span class="card__hint">toque para marcar</span>
       </div>
       <div class="tracker-grid" id="trackerGrid"></div>
+      <p class="card__foot">
+        Vinte e um dias não é um número mágico — é tempo suficiente para a rotina virar
+        hábito. O fio em si responde mais devagar: a fase de crescimento dura anos.
+      </p>
     </article>
 
-  </section>
+    <article class="card card--note">
+      <h2 class="card__title">Como você se sentiu hoje?</h2>
+      <p class="card__text card__text--muted">
+        Registrar o dia ajuda a enxergar padrão — queda costuma acompanhar fases,
+        não dias isolados.
+      </p>
+      <div class="mood-row" id="moodRow"></div>
+      <textarea id="dayNote" class="note-field" rows="3"
+        placeholder="Ex.: dormi mal, notei menos fio no ralo, usei chapinha…"></textarea>
+      <p class="card__foot" id="noteStatus"></p>
+    </article>
+
+    <article class="card card--locked" id="bonus4Card"></article>
+  </div>
+</template>
+
+<template id="tpl-tab-comida">
+  <div class="tab-content">
+    <header class="tab-intro">
+      <p class="kicker" id="foodKicker">alimentação</p>
+      <h2 class="display display--sm" id="foodHeadline"></h2>
+      <p class="lede lede--tight" id="foodLede"></p>
+    </header>
+
+    <article class="card card--plate">
+      <h3 class="card__title">O prato de referência</h3>
+      <div class="plate-wrap">
+        <div class="plate" id="plateViz" aria-hidden="true"></div>
+        <ul class="plate-legend" id="plateLegend"></ul>
+      </div>
+      <p class="card__foot" id="plateFoot"></p>
+    </article>
+
+    <div class="food-cols">
+      <article class="card card--eat">
+        <h3 class="card__title"><span class="pill pill--yes">Coma mais</span></h3>
+        <div id="foodYes" class="food-list"></div>
+      </article>
+
+      <article class="card card--avoid">
+        <h3 class="card__title"><span class="pill pill--no">Modere ou evite</span></h3>
+        <div id="foodNo" class="food-list"></div>
+      </article>
+    </div>
+
+    <article class="card card--combo">
+      <h3 class="card__title">Combinações que mudam o resultado</h3>
+      <p class="card__text card__text--muted">
+        Não é só o que você come — é com o que você come. Estas duplas alteram o quanto
+        o seu corpo realmente aproveita.
+      </p>
+      <div id="foodCombos" class="combo-list"></div>
+    </article>
+
+    <article class="card card--nutrients">
+      <div class="card__title-row">
+        <h3 class="card__title">Os nutrientes que aparecem na literatura</h3>
+        <span class="card__hint">toque para abrir</span>
+      </div>
+      <div id="nutrientList" class="nutrient-list"></div>
+    </article>
+
+    <article class="card card--myths">
+      <h3 class="card__title">O que a ciência <em>não</em> confirma</h3>
+      <p class="card__text card__text--muted">
+        Suplemento não é inofensivo por ser vendido sem receita. Estes são os pontos
+        em que a literatura contraria o senso comum.
+      </p>
+      <div id="mythList" class="myth-list"></div>
+    </article>
+
+    <p class="source-note">
+      Base: revisão sobre nutrição e queda capilar (J Prev Med Hyg, 2022) e capítulos
+      brasileiros sobre classificação e manejo da queda capilar. Quantidades e reposição
+      de qualquer nutriente devem ser definidas por médico ou nutricionista, a partir de exames.
+    </p>
+  </div>
+</template>
+
+<template id="tpl-tab-receitas">
+  <div class="tab-content">
+    <header class="tab-intro">
+      <p class="kicker">receitas caseiras</p>
+      <h2 class="display display--sm">Feitas na sua cozinha, usadas no seu banheiro</h2>
+      <p class="lede lede--tight">
+        As duas primeiras são as do seu perfil — comece por elas. As outras ficam
+        disponíveis para quando a rotina já estiver de pé.
+      </p>
+    </header>
+    <div id="recipeFull" class="recipe-full"></div>
+    <p class="source-note">
+      Receitas caseiras são cuidado cosmético e conforto de rotina — não são tratamento
+      médico. Faça sempre um teste em uma pequena área do antebraço antes da primeira
+      aplicação e suspenda se houver ardência, vermelhidão ou coceira.
+    </p>
+  </div>
+</template>
+
+<template id="tpl-tab-entender">
+  <div class="tab-content">
+    <header class="tab-intro">
+      <p class="kicker">entender</p>
+      <h2 class="display display--sm">Antes de tratar, entender</h2>
+      <p class="lede lede--tight">
+        Cinco leituras curtas. Elas explicam por que o seu cabelo está caindo, por que
+        a melhora demora, e em que ponto o cuidado em casa deixa de ser suficiente.
+      </p>
+    </header>
+    <div id="libraryList" class="library-list"></div>
+  </div>
 </template>
 
 <script src="app.js"></script>
