@@ -23,15 +23,15 @@ const TOTAL_DAYS = 90;
 const Q_SEX = {
   id: "sexo",
   type: "single",
-  title: "Para começar: o plano é para você ou para um homem da sua vida?",
-  hint: "A partir daqui as perguntas mudam. Padrão de queda, gatilhos e mecanismos são descritos de forma diferente para cada sexo.",
+  title: "Para começar: este plano é para uma mulher ou para um homem?",
+  hint: "A partir daqui as perguntas mudam. Padrão de queda, gatilhos e mecanismos são descritos de forma diferente para cada sexo. Se você está respondendo por outra pessoa, escolha o sexo dela.",
   options: [
     {
-      id: "f", label: "Sou mulher", tags: {},
+      id: "f", label: "Para uma mulher", tags: {},
       insight: "Na mulher, o padrão típico é o afinamento difuso da linha média, que poupa a implantação frontal — e o fator androgênico é considerado incerto. É por isso que as próximas perguntas vão para outro lugar.",
     },
     {
-      id: "m", label: "Sou homem", tags: {},
+      id: "m", label: "Para um homem", tags: {},
       insight: "No homem, a queda de padrão começa nas regiões temporais e no vértice e é dependente de DHT. As próximas perguntas seguem esse mapa.",
     },
   ],
@@ -416,7 +416,7 @@ const PROFILES = {
     },
     focus: [
       { icon: "🌙", title: "Priorize a calma no ritual", text: "A massagem do Passo 1 antes de dormir ajuda o corpo a sair do modo de alerta." },
-      { icon: "🕰️", title: "Dê tempo ao ciclo", text: "Esse tipo de queda leva de 6 a 12 meses para se recuperar por completo." },
+      { icon: "🕰️", title: "Dê tempo ao ciclo", text: "Removido o gatilho, a literatura descreve reposição quase total dos fios em alguns meses — e há casos de resolução espontânea." },
       { icon: "📝", title: "Registre o gatilho", text: "Anotar o que mudou nos últimos meses ajuda a não repetir o padrão." },
     ],
     recipes: ["tonico-alecrim", "mascara-babosa"],
@@ -475,6 +475,66 @@ const REDFLAG_MESSAGES = {
 };
 
 /* ---------------------------------------------------------------------------
+   RASTREIO DE EVIDÊNCIA
+   Cada recomendação de comida e cada receita carrega, na tela, de onde vem a
+   justificativa. A regra é simples e não deve ser afrouxada: se a explicação
+   não sai das revisões listadas em SOURCES, o item NÃO pode aparecer como se
+   saísse. Um plano alimentar que mistura achado de revisão com senso comum,
+   sem distinguir os dois, engana mesmo quando cada frase isolada é verdadeira.
+   --------------------------------------------------------------------------- */
+
+const EVIDENCE = {
+  lit:   { label: "descrito nas revisões citadas", cls: "src--lit" },
+  geral: { label: "prática alimentar geral, sem estudo para queda", cls: "src--geral" },
+  lab:   { label: "estudo em laboratório e em animais", cls: "src--lab" },
+  cosm:  { label: "uso cosmético tradicional, sem estudo para queda", cls: "src--cosm" },
+};
+
+/* Itens cuja justificativa é nutrição geral — verdadeira, porém sem estudo
+   específico ligando aquilo à queda capilar nas revisões que sustentam o app. */
+const FOOD_GERAL = new Set([
+  "Carboidrato integral (arroz integral, aveia, batata-doce)",
+  "Excesso de cafeína",
+  "Álcool com frequência",
+  "Ultraprocessado como base do dia",
+  "Ultraprocessado como base",
+  "Ultraprocessado e excesso de gordura saturada",
+  "Arroz com feijão (o prato inteiro)",
+  "Cortar grupos alimentares inteiros por conta própria",
+  "Café e chá preto junto das refeições",
+  "Água",
+  "Café ou chá preto",
+  "Proteína",
+  "Proteína no café da manhã",
+  "Fotos a cada 30 dias",
+  "Cuidado alimentar",
+]);
+
+const evidenceOf = (label) => (FOOD_GERAL.has(label) ? "geral" : "lit");
+
+/* Só o alecrim tem investigação laboratorial nas revisões. As demais receitas
+   são cuidado cosmético de tradição — e são apresentadas como tal. */
+const RECIPE_EVIDENCE = { "tonico-alecrim": "lab" };
+const recipeEvidenceOf = (id) => RECIPE_EVIDENCE[id] || "cosm";
+
+/* Avisos de segurança que valem para qualquer perfil. */
+const SAFETY_FOOD = [
+  "<strong>Gestação e amamentação mudam tudo.</strong> Necessidades, limites e alimentos desaconselhados são outros — inclusive fígado e suplementos de vitamina A. Nesta fase, qualquer ajuste alimentar deve passar por quem faz o seu pré-natal.",
+  "<strong>Condições de saúde e medicamentos vêm antes deste plano.</strong> Doença renal, hepática, diabetes, distúrbios da tireoide, doença celíaca, hemocromatose (excesso de ferro) e uso contínuo de medicamentos exigem orientação individual. Se você tem qualquer uma, trate este material como leitura, não como plano.",
+  "<strong>Alergias e intolerâncias têm prioridade sobre qualquer recomendação daqui.</strong> Nenhum alimento citado é indispensável — todos têm substituto.",
+  "<strong>Quantidade não é conteúdo educativo.</strong> As frequências sugeridas são pontos de partida de bom senso, não prescrição. Dose de nutriente e reposição só com médico ou nutricionista, a partir de exames.",
+  "<strong>Nada aqui é indicação de suplemento.</strong> As revisões usadas apontam o contrário do que o mercado sugere: repor sem deficiência não traz ganho e, em vitamina A e selênio, causa queda.",
+];
+
+const SAFETY_RECIPES = [
+  "<strong>Teste antes.</strong> Aplique uma pequena quantidade no antebraço e espere 24 horas. Vermelhidão, ardência ou coceira significam não usar — em nenhuma diluição.",
+  "<strong>Couro cabeludo com ferida, dor, descamação intensa ou inflamação não recebe receita caseira.</strong> Isso é avaliação médica, e insistir pode piorar o quadro.",
+  "<strong>Nada de óleo essencial puro na pele.</strong> Alecrim aqui é infusão. Óleos essenciais concentrados são causa comum de dermatite de contato.",
+  "<strong>Gestantes, lactantes, crianças e pessoas com dermatite, psoríase ou alergia a plantas</strong> devem confirmar com um profissional antes de usar qualquer preparo — inclusive os 'naturais'.",
+  "<strong>Preparo caseiro estraga.</strong> Respeite a validade indicada em cada receita e descarte o que sobrar.",
+];
+
+/* ---------------------------------------------------------------------------
    ALIMENTAÇÃO — plano por perfil
    --------------------------------------------------------------------------- */
 
@@ -493,9 +553,9 @@ const FOOD_PLAN = {
     yes: [
       { food: "Peixes gordos (sardinha, salmão, atum)", how: "2 a 3× por semana", why: "Fonte de ômega-3 e de vitamina D — a vitamina D atua sobre os queratinócitos por meio do seu receptor (VDR), e a deficiência é comum na população." },
       { food: "Ovos", how: "diariamente, se possível", why: "Proteína completa e barata. O fio é feito de queratina: sem aporte proteico constante, o folículo entra na fila das prioridades do corpo." },
-      { food: "Folhas verde-escuras (couve, espinafre, rúcula)", how: "no almoço e no jantar", why: "Trazem magnésio, folato e ferro não-heme — os três aparecem entre os micronutrientes ligados ao ciclo do folículo." },
+      { food: "Folhas verde-escuras (couve, espinafre, rúcula)", how: "no almoço e no jantar", why: "Trazem folato e ferro não-heme — os dois aparecem entre os micronutrientes ligados ao ciclo do folículo. Alterações em cabelo, pele e unhas estão entre os sinais descritos de falta de folato." },
       { food: "Castanhas, nozes, chia e linhaça", how: "1 punhado por dia", why: "Gordura insaturada e polifenóis, o núcleo do padrão alimentar mediterrâneo, associado na literatura a menor risco de alopecia." },
-      { food: "Chá verde", how: "1 a 2 xícaras por dia", why: "Rico em EGCG, polifenol que em estudos mostrou inibição da 5-alfa-redutase. Bônus: substitui bem o terceiro café da tarde." },
+      { food: "Chá verde", how: "1 a 2 xícaras por dia, fora das refeições", why: "Rico em EGCG, polifenol que em estudos mostrou inibição da 5-alfa-redutase — embora revisão brasileira trate o efeito como possível, e não estabelecido. Importante: chá também tem taninos, que atrapalham a absorção do ferro. Tome longe do almoço e do jantar." },
       { food: "Carboidrato integral (arroz integral, aveia, batata-doce)", how: "em todas as refeições principais", why: "Evita as quedas de glicose que puxam mais cortisol. Cortar carboidrato numa fase de estresse costuma piorar os dois problemas." },
     ],
     no: [
@@ -522,7 +582,7 @@ const FOOD_PLAN = {
     ],
     plateFoot: "A meta prática: uma fonte de proteína em pelo menos 3 refeições, todos os dias, sem exceção.",
     yes: [
-      { food: "Carne vermelha magra, fígado, frango, peixe", how: "proteína em 3 refeições/dia", why: "Ferro heme — a forma que o corpo absorve melhor. O ferro é cofator da enzima que limita a velocidade da síntese de DNA, essencial em células que se dividem rápido, como as da matriz do folículo." },
+      { food: "Carne vermelha magra, frango, peixe", how: "proteína em 3 refeições/dia", why: "Ferro heme — a forma que o corpo absorve melhor. O ferro é cofator da enzima que limita a velocidade da síntese de DNA, essencial em células que se dividem rápido, como as da matriz do folículo. (Fígado é riquíssimo em ferro, mas também em vitamina A pré-formada, cujo excesso causa queda — e é desaconselhado na gestação. Por isso ele não entra aqui como recomendação de rotina.)" },
       { food: "Feijão, lentilha, grão-de-bico, ervilha", how: "no almoço e no jantar", why: "Ferro não-heme + proteína vegetal. Absorve menos que o da carne, por isso a combinação com vitamina C importa tanto." },
       { food: "Frutas cítricas, acerola, pimentão, goiaba", how: "junto das refeições com ferro", why: "A vitamina C tem efeito quelante e redutor que favorece a absorção e a mobilização do ferro — a literatura a recomenda especificamente para quem tem queda por deficiência de ferro." },
       { food: "Semente de abóbora, castanha de caju, carne, frutos do mar", how: "diariamente em pequenas porções", why: "Zinco. A deficiência de zinco está descrita como causa de eflúvio telógeno e de fio fino e quebradiço." },
@@ -555,7 +615,7 @@ const FOOD_PLAN = {
     plateFoot: "Um prato equilibrado e constante já entrega o que o seu caso precisa. A energia vale mais aplicada na aba Hoje.",
     yes: [
       { food: "Proteína em quantidade adequada", how: "3 refeições por dia", why: "O fio é queratina — proteína. Fio que nasce em corpo bem nutrido resiste melhor ao atrito e ao calor que você ainda vai aplicar nele." },
-      { food: "Frutas cítricas e vegetais coloridos", how: "todos os dias", why: "Vitamina C participa da síntese de colágeno, que sustenta a estrutura ao redor do folículo." },
+      { food: "Frutas cítricas e vegetais coloridos", how: "todos os dias", why: "Vegetais e frutas são a base do padrão alimentar associado na literatura a menor risco de alopecia, pela carga de polifenóis antioxidantes. E a vitamina C melhora a absorção do ferro da refeição — útil mesmo quando o ferro não é o seu problema principal." },
       { food: "Azeite de oliva extravirgem", how: "cru, sobre a comida pronta", why: "Os ácidos graxos do azeite aparecem na literatura com efeito inibitório sobre a 5-alfa-redutase, e ele é o centro do padrão mediterrâneo." },
       { food: "Água", how: "ao longo do dia", why: "Não 'hidrata o fio' por dentro — mas cabelo e couro cabeludo saudáveis dependem de um corpo hidratado como qualquer outro tecido." },
       { food: "Peixes, castanhas e sementes", how: "algumas vezes por semana", why: "Gordura insaturada e antioxidantes: o pano de fundo anti-inflamatório associado a menor risco de alopecia." },
@@ -584,7 +644,7 @@ const FOOD_PLAN = {
     plateFoot: "Este é, na prática, o desenho do padrão mediterrâneo: muito vegetal, peixe, azeite, pouca carne vermelha e pouco processado.",
     yes: [
       { food: "Azeite de oliva extravirgem", how: "diariamente, cru", why: "Seus ácidos graxos essenciais mostraram efeito inibitório sobre a 5-alfa-redutase — a mesma enzima envolvida na conversão de testosterona em DHT, central no padrão androgenético." },
-      { food: "Chá verde", how: "1 a 2 xícaras por dia", why: "O EGCG, principal polifenol do chá, foi descrito como capaz de reduzir risco associado à alopecia androgenética por inibição da 5-alfa-redutase." },
+      { food: "Chá verde", how: "1 a 2 xícaras por dia, fora das refeições", why: "O EGCG, principal polifenol do chá, foi descrito como capaz de reduzir risco associado à alopecia androgenética por inibição da 5-alfa-redutase. Revisão brasileira lista o chá verde entre os fitoterápicos que podem ter essa ação e pondera que faltam estudos para afirmar eficácia — trate como aposta de baixo custo, não como tratamento. Tome longe das refeições: os taninos do chá atrapalham a absorção do ferro." },
       { food: "Peixes, legumes, frutas, leguminosas e oleaginosas", how: "a base do dia", why: "Conjunto rico em polifenóis e gordura insaturada, com ação antioxidante e anti-inflamatória descrita na literatura." },
       { food: "Maçã com casca", how: "quando quiser", why: "Fonte de procianidina oligomérica, derivada da maçã, estudada por estimular a proliferação de células epiteliais do fio e induzir a fase de crescimento em testes iniciais." },
       { food: "Proteína e ferro adequados", how: "sem exagero, sem falta", why: "Não reverte o padrão, mas uma deficiência somada ao componente genético piora um quadro que já tende a progredir." },
@@ -1099,7 +1159,9 @@ function renderQuiz() {
 
   const answered = q.type === "multi" ? (state.answers[q.id] || []).length > 0 : !!state.answers[q.id];
   btnNext.disabled = !answered;
-  btnNext.textContent = state.quizIndex === list.length - 1 ? "Ver meu resultado →" : "Continuar →";
+  // sem sexo escolhido a trilha ainda nem existe — nunca é a última pergunta
+  const isLast = !!sexOf() && state.quizIndex === list.length - 1;
+  btnNext.textContent = isLast ? "Ver meu resultado →" : "Continuar →";
 
   saveState();
 }
@@ -1456,21 +1518,20 @@ function renderTabComida(p) {
   `).join("");
   document.getElementById("plateFoot").textContent = f.plateFoot;
 
-  document.getElementById("foodYes").innerHTML = f.yes.map((i) => `
-    <div class="food-item food-item--yes">
+  const srcTag = (tier) => {
+    const e = EVIDENCE[tier];
+    return `<span class="src ${e.cls}">${e.label}</span>`;
+  };
+  const foodItem = (i, kind) => `
+    <div class="food-item food-item--${kind}">
       <h4>${esc(i.food)}</h4>
       <span class="food-item__how">${esc(i.how)}</span>
       <p>${esc(i.why)}</p>
-    </div>
-  `).join("");
+      ${srcTag(evidenceOf(i.food))}
+    </div>`;
 
-  document.getElementById("foodNo").innerHTML = f.no.map((i) => `
-    <div class="food-item food-item--no">
-      <h4>${esc(i.food)}</h4>
-      <span class="food-item__how">${esc(i.how)}</span>
-      <p>${esc(i.why)}</p>
-    </div>
-  `).join("");
+  document.getElementById("foodYes").innerHTML = f.yes.map((i) => foodItem(i, "yes")).join("");
+  document.getElementById("foodNo").innerHTML = f.no.map((i) => foodItem(i, "no")).join("");
 
   document.getElementById("foodCombos").innerHTML = f.combos.map((c) => `
     <div class="combo">
@@ -1480,8 +1541,12 @@ function renderTabComida(p) {
         <span class="combo__b">${esc(c.b)}</span>
       </div>
       <p>${esc(c.gain)}</p>
+      ${srcTag(evidenceOf(c.a))}
     </div>
   `).join("");
+
+  document.getElementById("safetyFood").innerHTML = SAFETY_FOOD
+    .map((s) => `<li>${s}</li>`).join("");
 
   const nl = document.getElementById("nutrientList");
   nl.innerHTML = NUTRIENTS.map((n) => {
@@ -1551,10 +1616,14 @@ function renderTabReceitas(p) {
         <div class="recipe-card__why">
           <h4>Por que esta receita está aqui</h4>
           <p>${esc(r.why)}</p>
+          <span class="src ${EVIDENCE[recipeEvidenceOf(rid)].cls}">${EVIDENCE[recipeEvidenceOf(rid)].label}</span>
         </div>
         <p class="recipe-card__caution">⚠︎ ${esc(r.caution)}</p>
       </article>`;
   }).join("");
+
+  document.getElementById("safetyRecipes").innerHTML = SAFETY_RECIPES
+    .map((s) => `<li>${s}</li>`).join("");
 }
 
 /* -------------------------------- aba ENTENDER ----------------------------- */

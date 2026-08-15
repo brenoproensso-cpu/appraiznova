@@ -30,6 +30,8 @@
 *{ box-sizing:border-box; }
 /* display:flex nos painéis colapsáveis sobrescreveria o atributo hidden */
 [hidden]{ display:none !important; }
+/* iOS Safari pinta texto de <button> com o azul do sistema; herdar corrige */
+button{ color: inherit; font-family: inherit; -webkit-appearance: none; appearance: none; }
 html,body{ margin:0; padding:0; }
 
 body{
@@ -369,6 +371,29 @@ main{ position: relative; z-index: 1; }
 }
 .combo__plus{ color: var(--terracota); font-weight:700; }
 .combo p{ margin:0; font-size:.87rem; color: var(--muted); line-height:1.55; }
+
+/* selo de rastreio: de onde vem a justificativa de cada item */
+.src{
+  display:inline-block; margin-top:.6rem;
+  font-size:.64rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+  padding:.26rem .6rem; border-radius:999px; line-height:1.35;
+}
+.src--lit{ background: #DCE3D6; color: var(--sage-deep); }
+.src--geral{ background: var(--blush); color: var(--plum); }
+.src--lab{ background: var(--warn-bg); color: #8A5520; border:1px solid var(--warn-line); }
+.src--cosm{ background: var(--cream); color: var(--muted); border:1px solid var(--line); }
+
+/* bloco de segurança */
+.card--safety{ background: var(--warn-bg); border-color: var(--warn-line); }
+.card--safety .card__title{ color: #7A4A1F; }
+.card--safety .card__hint{ color: #8A5520; }
+.safety-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.9rem; }
+.safety-list li{
+  font-size:.88rem; line-height:1.6; color: #6B4218;
+  padding-left:1.1rem; position:relative;
+}
+.safety-list li::before{ content:"▸"; position:absolute; left:0; color: var(--warn-line); font-weight:700; }
+.safety-list strong{ color: #5A3612; }
 
 .nutrient-list{ display:flex; flex-direction:column; }
 .nutrient{ border-top: 1px solid var(--line); }
