@@ -6,74 +6,163 @@
    AVISO DE CONTEÚDO: todo o material aqui é EDUCATIVO. Não faz diagnóstico,
    não é consulta médica e não substitui avaliação profissional. Os textos de
    base científica vêm das revisões listadas em SOURCES (fim do arquivo).
+
+   O quiz tem TRILHAS SEPARADAS por sexo: a literatura descreve padrões,
+   gatilhos e mecanismos distintos entre homens e mulheres — inclusive o
+   argumento de que a alopecia androgenética masculina e a feminina são
+   desordens diferentes. Perguntar a mesma coisa para os dois seria impreciso.
    ============================================================================= */
 
-const STORAGE_KEY = "raizNova.v1";
+const STORAGE_KEY = "raizNova.v2";
+const TOTAL_DAYS = 90;
 
 /* ---------------------------------------------------------------------------
-   1) CONTEÚDO — perguntas, perfis, alimentação, receitas, biblioteca
+   1) QUIZ — pergunta de entrada + trilhas por sexo
    --------------------------------------------------------------------------- */
 
-const QUESTIONS = [
+const Q_SEX = {
+  id: "sexo",
+  type: "single",
+  title: "Para começar: o plano é para você ou para um homem da sua vida?",
+  hint: "A partir daqui as perguntas mudam. Padrão de queda, gatilhos e mecanismos são descritos de forma diferente para cada sexo.",
+  options: [
+    {
+      id: "f", label: "Sou mulher", tags: {},
+      insight: "Na mulher, o padrão típico é o afinamento difuso da linha média, que poupa a implantação frontal — e o fator androgênico é considerado incerto. É por isso que as próximas perguntas vão para outro lugar.",
+    },
+    {
+      id: "m", label: "Sou homem", tags: {},
+      insight: "No homem, a queda de padrão começa nas regiões temporais e no vértice e é dependente de DHT. As próximas perguntas seguem esse mapa.",
+    },
+  ],
+};
+
+const Q_TEMPO = {
+  id: "tempo",
+  type: "single",
+  title: "Há quanto tempo você notou esse aumento na queda?",
+  hint: "",
+  options: [
+    { id: "menos1", label: "Menos de 1 mês", tags: { estresse: 1 } },
+    { id: "1a3", label: "De 1 a 3 meses", tags: { estresse: 1, nutricional: 1 } },
+    { id: "3a6", label: "De 3 a 6 meses", tags: { nutricional: 1 } },
+    {
+      id: "mais6", label: "Mais de 6 meses, sem melhora", tags: { genetico: 1 }, chronic: true,
+      insight: "Seis meses sem melhora é o marco que muda a conduta. O eflúvio ligado a um gatilho costuma se resolver nesse intervalo — quando não se resolve, a investigação profissional deixa de ser opcional.",
+    },
+  ],
+};
+
+const Q_ALIMENTACAO = {
+  id: "alimentacao",
+  type: "single",
+  title: "Como está sua alimentação hoje?",
+  hint: "",
+  options: [
+    {
+      id: "restritiva", label: "Faço dieta restritiva ou corto grupos alimentares", tags: { nutricional: 2 },
+      insight: "Restrição dietética e perda de peso rápida estão entre os desencadeadores clássicos de eflúvio telógeno. Emagrecer e recuperar cabelo ao mesmo tempo costuma ser um pedido contraditório para o corpo.",
+    },
+    { id: "pouca_proteina", label: "Como pouca proteína no dia a dia", tags: { nutricional: 2 } },
+    { id: "variada", label: "Alimentação variada e regular", tags: {} },
+  ],
+};
+
+const Q_PRIORIDADE = {
+  id: "prioridade",
+  type: "single",
+  title: "E hoje, o que mais te incomoda?",
+  hint: "Vamos usar isso pra ordenar o seu plano.",
+  options: [
+    { id: "afinamento", label: "Sensação geral de cabelo mais fino", tags: {} },
+    { id: "queda_visivel", label: "Ver muito fio no travesseiro, escova ou ralo", tags: {} },
+    { id: "crescimento", label: "Cabelo que não cresce / demora a recuperar", tags: {} },
+    { id: "forca", label: "Falta de brilho e força nos fios", tags: {} },
+  ],
+};
+
+/* ------------------------------ trilha feminina ---------------------------- */
+
+const QUESTIONS_F = [
   {
     id: "padrao",
     type: "single",
-    title: "Como você descreveria o padrão da sua queda?",
-    hint: "Escolha a opção mais parecida com o que você observa hoje.",
+    title: "Como você descreveria a sua queda hoje?",
+    hint: "Escolha a opção mais parecida com o que você vê no espelho.",
     options: [
-      { id: "difusa", label: "Espalhada por toda a cabeça — mais fios soltos em geral", tags: { estresse: 1, nutricional: 1 } },
-      { id: "entradas_coroa", label: "Mais concentrada nas entradas e no topo/coroa", tags: { genetico: 2 } },
-      { id: "placas", label: "Em placas ou áreas específicas, sem cabelo", tags: {}, redFlag: "placas" },
+      {
+        id: "risca", label: "A risca do meio está mais larga — vejo mais couro cabeludo no topo", tags: { genetico: 2 },
+        insight: "Esse é exatamente o padrão descrito na alopecia de padrão feminino: afinamento difuso, mais percebido na linha média, poupando a implantação frontal — a classificação de Ludwig. Note que ele NÃO é a mesma coisa que a calvície masculina.",
+      },
+      {
+        id: "difusa", label: "Cai por toda a cabeça — mais fio solto em geral", tags: { estresse: 1, nutricional: 1 },
+        insight: "Queda difusa costuma apontar para gatilho recente ou carência nutricional. É a família de causas mais reversível — e a que mais responde a rotina e prato.",
+      },
+      {
+        id: "tracao", label: "Afinou nas têmporas e laterais, onde eu prendo o cabelo", tags: { habito: 2 },
+        insight: "Afinamento no ponto onde o cabelo é tracionado é o sinal clássico de alopecia por tração. A boa notícia: é o tipo que mais responde a simplesmente mudar o penteado — desde que não vire quadro cicatricial.",
+      },
+      {
+        id: "placas", label: "Em placas ou falhas bem delimitadas", tags: {}, redFlag: "placas",
+        insight: "Falhas delimitadas têm causas próprias e pedem avaliação antes de qualquer rotina. Vamos continuar, mas isso vai aparecer com destaque no seu resultado.",
+      },
     ],
   },
-  {
-    id: "tempo",
-    type: "single",
-    title: "Há quanto tempo você notou esse aumento na queda?",
-    hint: "",
-    options: [
-      { id: "menos1", label: "Menos de 1 mês", tags: { estresse: 1 } },
-      { id: "1a3", label: "De 1 a 3 meses", tags: { estresse: 1, nutricional: 1 } },
-      { id: "3a6", label: "De 3 a 6 meses", tags: { nutricional: 1 } },
-      { id: "mais6", label: "Mais de 6 meses, sem melhora", tags: { genetico: 1 }, chronic: true },
-    ],
-  },
+  Q_TEMPO,
   {
     id: "gatilho",
     type: "multi",
-    title: "Algo destes aconteceu nos últimos 6 meses?",
+    title: "Algo destes aconteceu nos últimos 12 meses?",
     hint: "Pode marcar mais de um.",
     options: [
-      { id: "parto", label: "Parto ou pós-parto", tags: { estresse: 2 } },
+      {
+        id: "parto", label: "Parto ou pós-parto", tags: { estresse: 2 },
+        insight: "A queda pós-parto é um dos eflúvios telógenos mais bem descritos: vem 2 a 3 meses depois e costuma se resolver sozinha. Você provavelmente está no meio dela, não no começo.",
+      },
+      {
+        id: "hormonio", label: "Comecei, troquei ou parei anticoncepcional / reposição hormonal", tags: { estresse: 2 },
+        insight: "Mudanças hormonais são gatilho descrito de eflúvio telógeno — e o intervalo de 2 a 3 meses vale aqui também.",
+      },
+      {
+        id: "menopausa", label: "Entrei na menopausa ou perimenopausa", tags: { genetico: 1, estresse: 1 },
+        insight: "A alopecia de padrão feminino tem início mais tardio, por volta da quarta década, e piora após a menopausa. Não é coincidência de idade — é parte do quadro descrito.",
+      },
       { id: "dieta", label: "Dieta restritiva ou perda de peso rápida", tags: { nutricional: 2 } },
       { id: "estresse_forte", label: "Período de estresse ou luto intenso", tags: { estresse: 2 } },
-      { id: "hormonio", label: "Início, troca ou suspensão de anticoncepcional/hormônio", tags: { estresse: 2 } },
       { id: "cirurgia", label: "Cirurgia, febre alta ou doença recente", tags: { nutricional: 1, estresse: 1 } },
       { id: "nenhum_gatilho", label: "Nenhum desses", tags: { genetico: 1 }, exclusive: true },
     ],
   },
   {
-    id: "habitos",
-    type: "multi",
-    title: "Quais desses hábitos fazem parte da sua rotina?",
-    hint: "Pode marcar mais de um.",
+    id: "ciclo",
+    type: "single",
+    title: "E sobre a sua menstruação hoje?",
+    hint: "Esta pergunta parece deslocada — não é. Ela é uma das mais informativas do questionário.",
     options: [
-      { id: "calor", label: "Secador/chapinha quase todo dia, sem protetor térmico", tags: { habito: 2 } },
-      { id: "tracao", label: "Rabo ou coque apertado com frequência", tags: { habito: 2 } },
-      { id: "quimica", label: "Alisamento, coloração ou química em sequência", tags: { habito: 2 } },
-      { id: "lavagem", label: "Lavagem bem irregular (de mais ou de menos)", tags: { habito: 1 } },
-      { id: "nenhum_habito", label: "Nenhum desses — já cuido bem por fora", tags: {}, exclusive: true },
+      {
+        id: "intenso", label: "Fluxo intenso ou prolongado", tags: { nutricional: 2 },
+        insight: "Aqui está o motivo da pergunta: fluxo intenso é uma das principais rotas para deficiência de ferro — a carência nutricional mais comum do mundo e frequente em mulheres com queda capilar. Um exame de ferritina resolve a dúvida.",
+      },
+      { id: "irregular", label: "Ciclo irregular, ou tenho diagnóstico de SOP", tags: { genetico: 1, estresse: 1 } },
+      { id: "regular", label: "Regular, sem alterações", tags: {} },
+      { id: "sem_ciclo", label: "Não menstruo mais, ou uso método que suspende", tags: { genetico: 1 } },
     ],
   },
   {
-    id: "alimentacao",
-    type: "single",
-    title: "Como está sua alimentação hoje?",
-    hint: "",
+    id: "habitos",
+    type: "multi",
+    title: "Quais desses fazem parte da sua rotina?",
+    hint: "Pode marcar mais de um.",
     options: [
-      { id: "restritiva", label: "Faço dieta restritiva ou corto grupos alimentares", tags: { nutricional: 2 } },
-      { id: "pouca_proteina", label: "Como pouca proteína no dia a dia", tags: { nutricional: 2 } },
-      { id: "variada", label: "Alimentação variada e regular", tags: {} },
+      { id: "calor", label: "Secador/chapinha quase todo dia, sem protetor térmico", tags: { habito: 2 } },
+      { id: "tracao", label: "Rabo, coque ou trança apertada com frequência", tags: { habito: 2 } },
+      { id: "quimica", label: "Alisamento, coloração ou química em sequência", tags: { habito: 2 } },
+      {
+        id: "aplique", label: "Apliques, mega hair ou tranças pesadas", tags: { habito: 2 },
+        insight: "Peso e tração contínua no mesmo ponto de implantação são causa mecânica descrita de queda — e, mantidos por muito tempo, podem evoluir para dano permanente do folículo.",
+      },
+      { id: "lavagem", label: "Lavagem bem irregular (de mais ou de menos)", tags: { habito: 1 } },
+      { id: "nenhum_habito", label: "Nenhum desses — já cuido bem por fora", tags: {}, exclusive: true },
     ],
   },
   {
@@ -83,23 +172,119 @@ const QUESTIONS = [
     hint: "Pode marcar mais de um.",
     options: [
       { id: "coceira", label: "Coceira, vermelhidão ou descamação no couro cabeludo", tags: {}, redFlag: "coceira" },
-      { id: "familiar", label: "Histórico familiar forte de calvície", tags: { genetico: 2 } },
+      { id: "familiar", label: "Mãe, avó ou irmã com rarefação parecida", tags: { genetico: 2 } },
+      {
+        id: "androgenico", label: "Mais pelos no rosto, acne ou oleosidade que aumentou", tags: { genetico: 1 },
+        insight: "Esse conjunto costuma motivar investigação hormonal. Vale registrar e levar para a consulta — não para se assustar, mas porque muda o que o médico vai pedir.",
+      },
       { id: "nenhum_sinal", label: "Nenhum desses", tags: {}, exclusive: true },
     ],
   },
+  Q_ALIMENTACAO,
+  Q_PRIORIDADE,
+];
+
+/* ------------------------------ trilha masculina --------------------------- */
+
+const QUESTIONS_M = [
   {
-    id: "prioridade",
+    id: "padrao",
     type: "single",
-    title: "E hoje, o que mais te incomoda?",
-    hint: "Vamos usar isso pra ordenar o seu plano.",
+    title: "Como você descreveria a sua queda hoje?",
+    hint: "Escolha a opção mais parecida com o que você vê no espelho.",
     options: [
-      { id: "afinamento", label: "Sensação geral de cabelo mais fino", tags: {} },
-      { id: "queda_visivel", label: "Ver muito fio no travesseiro, escova ou ralo", tags: {} },
-      { id: "crescimento", label: "Cabelo que não cresce / demora a recuperar", tags: {} },
-      { id: "forca", label: "Falta de brilho e força nos fios", tags: {} },
+      {
+        id: "entradas", label: "As entradas estão recuando — a linha frontal subiu", tags: { genetico: 2 },
+        insight: "A queda de padrão masculino começa justamente pelas regiões temporais. É a base da classificação Hamilton-Norwood, que descreve sete estágios de evolução.",
+      },
+      {
+        id: "coroa", label: "Está afinando no topo / na coroa", tags: { genetico: 2 },
+        insight: "Vértice e têmporas são as duas frentes iniciais da miniaturização folicular no homem — e o processo é dependente de DHT.",
+      },
+      {
+        id: "difusa", label: "Cai por toda a cabeça, sem padrão definido", tags: { estresse: 1, nutricional: 1 },
+        insight: "Queda sem padrão definido aponta menos para herança e mais para gatilho recente ou carência — as causas mais reversíveis.",
+      },
+      {
+        id: "placas", label: "Em placas ou falhas bem delimitadas", tags: {}, redFlag: "placas",
+        insight: "Falhas delimitadas têm causas próprias e pedem avaliação antes de qualquer rotina.",
+      },
     ],
   },
+  Q_TEMPO,
+  {
+    id: "inicio",
+    type: "single",
+    title: "Com que idade você notou os primeiros sinais?",
+    hint: "",
+    options: [
+      {
+        id: "antes25", label: "Antes dos 25 anos", tags: { genetico: 2 },
+        insight: "Quanto mais precoce a manifestação, mais exuberante tende a ser o quadro. Isso não é sentença — é o argumento mais forte para não adiar a avaliação, já que aqui o tempo conta a favor de quem age cedo.",
+      },
+      { id: "25a35", label: "Entre 25 e 35 anos", tags: { genetico: 1 } },
+      {
+        id: "depois35", label: "Depois dos 35 anos", tags: { genetico: 1 },
+        insight: "A prevalência sobe com a idade: cerca de 30% dos homens aos 30 anos e 50% aos 50. É comum — o que não quer dizer que só reste aceitar.",
+      },
+      { id: "derrepente", label: "Não foi progressivo — começou de repente", tags: { estresse: 1 } },
+    ],
+  },
+  {
+    id: "familia",
+    type: "single",
+    title: "Tem histórico de rarefação ou calvície na família?",
+    hint: "",
+    options: [
+      {
+        id: "forte", label: "Sim — pai e/ou avô materno", tags: { genetico: 2 },
+        insight: "O componente hereditário é forte e bem documentado, com agregação familiar clara em estudos com gêmeos. Herança define a tendência, não o ritmo: o que muda a curva é o acompanhamento.",
+      },
+      { id: "algum", label: "Sim, algum parente", tags: { genetico: 1 } },
+      { id: "ninguem", label: "Ninguém que eu saiba", tags: {} },
+      { id: "naosei", label: "Não sei dizer", tags: {} },
+    ],
+  },
+  {
+    id: "gatilho",
+    type: "multi",
+    title: "Algo destes aconteceu nos últimos 12 meses?",
+    hint: "Pode marcar mais de um.",
+    options: [
+      { id: "estresse_forte", label: "Período de estresse ou luto intenso", tags: { estresse: 2 } },
+      { id: "dieta", label: "Dieta restritiva ou perda de peso rápida", tags: { nutricional: 2 } },
+      { id: "cirurgia", label: "Cirurgia, febre alta ou doença recente", tags: { nutricional: 1, estresse: 1 } },
+      {
+        id: "anabolizante", label: "Uso de anabolizante ou reposição de testosterona", tags: { genetico: 2 },
+        insight: "Vale saber: a queda de padrão masculino é um processo dependente de di-hidrotestosterona. Aumentar a oferta de andrógenos em quem tem predisposição tende a acelerar o que já estava em curso. Converse sobre isso com quem acompanha o seu uso.",
+      },
+      { id: "medicamento", label: "Comecei algum medicamento contínuo novo", tags: { estresse: 1 } },
+      { id: "nenhum_gatilho", label: "Nenhum desses", tags: { genetico: 1 }, exclusive: true },
+    ],
+  },
+  {
+    id: "couro",
+    type: "single",
+    title: "Como está o seu couro cabeludo?",
+    hint: "",
+    options: [
+      {
+        id: "seborreia", label: "Oleoso, com caspa ou descamação", tags: {}, redFlag: "coceira",
+        insight: "Dermatite seborreica é comum, tratável e frequentemente ignorada. A literatura recomenda tratar as afecções do couro cabeludo justamente para obter melhores resultados no cuidado capilar — ou seja, resolver isso melhora tudo o mais que você fizer.",
+      },
+      { id: "coceira", label: "Coça, arde ou fica vermelho", tags: {}, redFlag: "coceira" },
+      { id: "normal", label: "Normal, sem queixas", tags: {} },
+    ],
+  },
+  Q_ALIMENTACAO,
+  Q_PRIORIDADE,
 ];
+
+const QUESTIONS_BY_SEX = { f: QUESTIONS_F, m: QUESTIONS_M };
+
+function questionList(sex) {
+  return sex ? [Q_SEX, ...QUESTIONS_BY_SEX[sex]] : [Q_SEX];
+}
 
 /* --------------------------- receitas (passo a passo) ---------------------- */
 
@@ -221,23 +406,34 @@ const PROFILES = {
   estresse: {
     name: "Eflúvio por Estresse & Hormônios",
     desc: "Suas respostas apontam para um gatilho recente — estresse, uma fase hormonal ou um evento físico forte. Esse tipo de queda costuma ser temporário e responde bem a rotina consistente + tempo.",
+    bySex: {
+      f: {
+        desc: "Suas respostas apontam para um gatilho recente — parto, mudança hormonal, estresse ou um evento físico forte. É o eflúvio telógeno: a queda aparece 2 a 3 meses depois do evento, o que explica a sensação de que 'não aconteceu nada'. Costuma ser reversível, com reposição quase total dos fios em alguns meses.",
+      },
+      m: {
+        desc: "Suas respostas apontam para um gatilho recente — estresse intenso, doença, cirurgia ou mudança forte de rotina. É o eflúvio telógeno: a queda aparece 2 a 3 meses depois do evento e costuma se resolver quando o fator é removido.",
+      },
+    },
     focus: [
       { icon: "🌙", title: "Priorize a calma no ritual", text: "A massagem do Passo 1 antes de dormir ajuda o corpo a sair do modo de alerta." },
       { icon: "🕰️", title: "Dê tempo ao ciclo", text: "Esse tipo de queda leva de 6 a 12 meses para se recuperar por completo." },
       { icon: "📝", title: "Registre o gatilho", text: "Anotar o que mudou nos últimos meses ajuda a não repetir o padrão." },
     ],
-    chapters: ["c1", "c3", "c5"],
     recipes: ["tonico-alecrim", "mascara-babosa"],
   },
   nutricional: {
     name: "Eflúvio Nutricional",
     desc: "Seu perfil aponta para uma possível lacuna nutricional — dieta restritiva, pouca proteína ou baixa reposição de ferro e zinco. O folículo costuma ser um dos primeiros lugares a sentir essa falta.",
+    bySex: {
+      f: {
+        desc: "Seu perfil aponta para uma possível lacuna nutricional — dieta restritiva, pouca proteína, ou perda de ferro. A deficiência de ferro é a carência nutricional mais comum do mundo e aparece com frequência em mulheres com queda capilar; fluxo menstrual intenso é uma das rotas mais comuns para chegar nela. O folículo é um dos primeiros lugares do corpo a sentir a falta.",
+      },
+    },
     focus: [
       { icon: "🍽️", title: "O prato entra na rotina", text: "Seguir o guia alimentar aqui não é opcional — é onde a mudança real acontece." },
       { icon: "🥩", title: "Proteína em toda refeição", text: "Garanta uma fonte de proteína em pelo menos 3 refeições do dia." },
       { icon: "🩸", title: "Vale um exame", text: "Um exame de sangue simples confirma se ferro, zinco ou vitamina D estão baixos." },
     ],
-    chapters: ["c1", "c3", "c2"],
     recipes: ["spray-arroz", "mascara-abacate"],
   },
   habito: {
@@ -248,39 +444,45 @@ const PROFILES = {
       { icon: "🎀", title: "Solte o penteado", text: "Prenda com menos força e varie o ponto de tração." },
       { icon: "🛡️", title: "Proteja à noite", text: "Fronha de cetim/seda reduz o atrito que quebra o fio enquanto você dorme." },
     ],
-    chapters: ["c2", "c3", "c4"],
     recipes: ["oleo-ricino", "enxague-vinagre"],
   },
   genetico: {
     name: "Padrão com Possível Componente Genético",
-    desc: "O padrão descrito (queda concentrada em entradas/coroa, tempo prolongado, ou histórico familiar) pode ter componente hereditário. Este guia ajuda a fortalecer e cuidar — mas aqui o acompanhamento profissional faz toda a diferença no resultado.",
+    desc: "O padrão descrito pode ter componente hereditário. Este guia ajuda a fortalecer e cuidar — mas aqui o acompanhamento profissional faz toda a diferença no resultado.",
+    bySex: {
+      f: {
+        name: "Padrão Feminino com Componente Hormonal",
+        desc: "Suas respostas se aproximam do que a literatura descreve como alopecia de padrão feminino: afinamento difuso, mais evidente na linha média, poupando a implantação frontal — o que a classificação de Ludwig organiza. Um detalhe importante: nas mulheres o fator androgênico é considerado incerto, e há argumento consolidado de que a forma feminina e a masculina são desordens distintas. Ou seja, o que vale para eles não vale automaticamente para você — inclusive em tratamento. Este material apoia o cuidado diário; quem define conduta é o dermatologista.",
+      },
+      m: {
+        name: "Padrão Masculino (Hamilton-Norwood)",
+        desc: "Suas respostas se aproximam do que a literatura descreve como alopecia androgenética masculina: miniaturização folicular começando pelas regiões temporais e pelo vértice, em um processo dependente de di-hidrotestosterona. É a forma mais comum de queda no homem — cerca de 30% aos 30 anos e 50% aos 50 — e é progressiva, o que torna o tempo a variável mais valiosa. Existem condutas consagradas e estudadas; quem indica é o dermatologista, e chegar cedo amplia o que é possível fazer.",
+      },
+    },
     focus: [
       { icon: "🩺", title: "Marque uma avaliação", text: "Um dermatologista confirma o padrão e indica o que mais somar ao seu cuidado." },
       { icon: "🌿", title: "Cuide do que está no seu controle", text: "A rotina do Protocolo Raiz Nova ainda ajuda a manter o couro cabeludo saudável." },
       { icon: "📸", title: "Acompanhe com fotos", text: "Fotos mensais, mesma luz e ângulo, ajudam a enxergar mudanças reais." },
     ],
-    chapters: ["c5", "c1", "c3"],
     recipes: ["tonico-alecrim", "oleo-ricino"],
   },
 };
 
 const REDFLAG_MESSAGES = {
   placas: "Queda concentrada em placas específicas pode ter causas variadas — o ideal é um dermatologista avaliar antes de seguir qualquer rotina.",
-  coceira: "Coceira, vermelhidão ou descamação no couro cabeludo podem indicar uma condição que pede avaliação profissional, mesmo seguindo os cuidados gerais.",
+  coceira: "Coceira, vermelhidão ou descamação no couro cabeludo podem indicar uma condição que pede avaliação profissional. Tratar a afecção do couro cabeludo costuma melhorar o resultado de todo o resto do cuidado.",
   chronic: "Mais de 6 meses de queda persistente, sem melhora, é motivo suficiente para buscar uma avaliação profissional junto com a rotina.",
 };
 
 /* ---------------------------------------------------------------------------
    ALIMENTAÇÃO — plano por perfil
-   Cada perfil tem: chamada, contexto, prato de referência, o que comer mais,
-   o que moderar, e combinações que mudam a absorção.
    --------------------------------------------------------------------------- */
 
 const FOOD_PLAN = {
   estresse: {
     kicker: "alimentação · perfil estresse e hormônios",
     headline: "Comer para sair do modo de alerta",
-    lede: "Em fases de estresse o corpo trabalha com o custo aumentado e o cortisol alto — e o cortisol interfere na matriz que sustenta o folículo. Aqui a alimentação não é o gatilho da sua queda, mas é o que sustenta a recuperação enquanto o ciclo se reorganiza. Regularidade importa mais que perfeição: pular refeição e passar horas em jejum mantém o corpo exatamente no estado que você quer sair.",
+    lede: "Em fases de estresse o corpo trabalha com o custo aumentado e o cortisol alto — e o cortisol degrada as substâncias que integram a matriz ao redor do folículo. Aqui a alimentação não é o gatilho da sua queda, mas é o que sustenta a recuperação enquanto o ciclo se reorganiza. Regularidade importa mais que perfeição: pular refeição e passar horas em jejum mantém o corpo exatamente no estado do qual você quer sair.",
     plate: [
       { label: "Vegetais e frutas coloridas", pct: 40, color: "var(--sage)" },
       { label: "Proteína", pct: 25, color: "var(--terracota)" },
@@ -394,7 +596,7 @@ const FOOD_PLAN = {
     ],
     combos: [
       { a: "Alimentação mediterrânea", b: "Avaliação com dermatologista", gain: "Neste perfil existem tratamentos consagrados e estudados. O prato apoia; quem indica conduta é o médico." },
-      { a: "Fotos mensais, mesma luz", b: "Registro no app", gain: "Padrão genético evolui devagar. Sem registro, você não consegue distinguir progressão real de impressão de um dia ruim." },
+      { a: "Fotos a cada 30 dias", b: "Mesma luz, mesmo ângulo", gain: "Padrão genético evolui devagar. Sem registro, você não consegue distinguir progressão real de impressão de um dia ruim." },
     ],
   },
 };
@@ -403,65 +605,49 @@ const FOOD_PLAN = {
 
 const NUTRIENTS = [
   {
-    id: "ferro",
-    name: "Ferro",
-    level: "forte",
+    id: "ferro", name: "Ferro", level: "forte",
     role: "Cofator da ribonucleotídeo redutase, a enzima que limita a velocidade da síntese de DNA — crítica em células de divisão rápida, como as da matriz do folículo.",
     food: "Carne vermelha magra, fígado, feijão, lentilha, folhas verde-escuras.",
     evidence: "A deficiência de ferro é a carência nutricional mais comum do mundo e causa eflúvio telógeno. A ferritina sérica é o marcador usado como referência de estoque corporal nos estudos de queda. É frequente em mulheres com queda capilar.",
   },
   {
-    id: "vitc",
-    name: "Vitamina C",
-    level: "apoio",
+    id: "vitc", name: "Vitamina C", level: "apoio",
     role: "Não age diretamente no fio: melhora a absorção intestinal e a mobilização do ferro.",
     food: "Laranja, limão, acerola, goiaba, pimentão, brócolis.",
     evidence: "A literatura recomenda vitamina C especificamente para quem tem queda associada à deficiência de ferro. Não há evidência de relação direta entre nível de vitamina C e queda em quem não tem essa deficiência.",
   },
   {
-    id: "zinco",
-    name: "Zinco",
-    level: "moderada",
+    id: "zinco", name: "Zinco", level: "moderada",
     role: "Atua em enzimas e fatores de transcrição envolvidos na regulação gênica e na morfogênese do folículo.",
     food: "Semente de abóbora, castanha de caju, carne, frutos do mar.",
     evidence: "A deficiência está descrita como causa de eflúvio telógeno e de fio fino, branco e quebradiço. Um estudo com 312 pessoas com queda encontrou zinco baixo em pacientes com alopecia areata e eflúvio telógeno — mas os dados no conjunto ainda são heterogêneos, e rastreio de rotina não é recomendado.",
   },
   {
-    id: "vitd",
-    name: "Vitamina D",
-    level: "moderada",
+    id: "vitd", name: "Vitamina D", level: "moderada",
     role: "Hormônio esteroide que, pelo receptor VDR, regula desenvolvimento e diferenciação dos queratinócitos.",
     food: "Peixes gordos, ovo, alimentos fortificados — e exposição solar.",
     evidence: "A imunorreatividade do VDR é maior na fase de crescimento do fio, e modelos animais sem o receptor desenvolvem alopecia. A relação com eflúvio telógeno e padrão androgenético ainda é discutida, mas há consenso majoritário de que pessoas com alopecia e insuficiência de vitamina D devem repor — com indicação médica.",
   },
   {
-    id: "proteina",
-    name: "Proteína",
-    level: "forte",
+    id: "proteina", name: "Proteína", level: "forte",
     role: "Matéria-prima do fio. A maior parte dos cerca de 100 mil folículos do couro cabeludo está em fase de crescimento e precisa de aporte constante.",
     food: "Ovos, carnes, peixes, laticínios, leguminosas.",
     evidence: "Dieta desequilibrada, perda de peso súbita e restrição calórica estão entre os desencadeadores descritos de queda. O aporte proteico adequado é premissa de qualquer plano.",
   },
   {
-    id: "omega",
-    name: "Ácidos graxos essenciais",
-    level: "moderada",
+    id: "omega", name: "Ácidos graxos essenciais", level: "moderada",
     role: "Compõem membranas celulares e modulam processos inflamatórios ao redor do folículo.",
     food: "Peixes gordos, azeite extravirgem, chia, linhaça, nozes.",
     evidence: "Deficiência de ácido linoleico e alfa-linolênico está associada a queda e despigmentação de cabelos e sobrancelhas. Ácidos graxos do azeite mostraram efeito inibitório sobre a 5-alfa-redutase.",
   },
   {
-    id: "biotina",
-    name: "Biotina (B7)",
-    level: "fraca",
+    id: "biotina", name: "Biotina (B7)", level: "fraca",
     role: "Vitamina do complexo B envolvida em carboxilases, sinalização celular e regulação gênica.",
     food: "Ovo, oleaginosas, fígado — a deficiência é rara em quem se alimenta de forma equilibrada.",
     evidence: "Apesar da popularidade, não há evidência em ensaios clínicos randomizados de que suplementar biotina previna ou trate queda em quem não tem deficiência. Atenção: biotina exógena interfere em vários exames laboratoriais, gerando resultados falsamente positivos ou negativos.",
   },
   {
-    id: "b12",
-    name: "B12 e folato",
-    level: "fraca",
+    id: "b12", name: "B12 e folato", level: "fraca",
     role: "Essenciais para síntese e reparo de DNA, o que teoricamente afetaria a proliferação do folículo.",
     food: "Carnes, ovos, laticínios (B12); folhas verdes e leguminosas (folato).",
     evidence: "Estudo caso-controle não encontrou diferença nos valores de B12 entre pessoas com e sem alopecia areata. A pesquisa sobre o tema ainda é escassa e não sustenta recomendação específica.",
@@ -498,22 +684,18 @@ const MYTHS = [
 
 const LIBRARY = [
   {
-    id: "ciclo",
-    kicker: "fundamento",
+    id: "ciclo", kicker: "fundamento", read: "3 min",
     title: "O fio tem um ciclo — e quase toda queda é uma questão de tempo",
-    read: "3 min",
     body: [
       "O couro cabeludo humano abriga em média de 100 mil a 150 mil folículos, e cada um funciona no seu próprio ritmo, independente dos vizinhos. É por isso que ninguém fica careca de um dia para o outro: os fios não caem em bloco.",
       "Cada folículo percorre três fases. A anágena é a de crescimento e dura de dois a sete anos — nela está cerca de 90% do seu cabelo agora. A catágena é a de transição e dura por volta de duas semanas, com apenas 1% dos folículos. A telógena é a de repouso, dura de dois a três meses e concentra cerca de 10% dos fios: são eles que se soltam.",
       "Perder de 20 a 150 fios telógenos por dia é normal — é o ciclo funcionando. O que chama atenção não é o fio no ralo, é o aumento sustentado desse número por semanas.",
-      "Entender isso muda a expectativa. Quando um gatilho empurra muitos folículos para a fase de repouso ao mesmo tempo, você só vê a queda quando esses fios se soltam, dois a três meses depois. E só vê a recuperação quando os novos crescem o suficiente para aparecer — o que leva mais alguns meses. A rotina que você começa hoje trabalha para um cabelo que ainda vai nascer.",
+      "Entender isso muda a expectativa. Quando um gatilho empurra muitos folículos para a fase de repouso ao mesmo tempo, você só vê a queda quando esses fios se soltam, dois a três meses depois. E só vê a recuperação quando os novos crescem o suficiente para aparecer — o que leva mais alguns meses. A rotina que você começa hoje trabalha para um cabelo que ainda vai nascer. É por isso que este plano tem 90 dias, e não 21.",
     ],
   },
   {
-    id: "gatilho",
-    kicker: "eflúvio telógeno",
+    id: "gatilho", kicker: "eflúvio telógeno", read: "3 min",
     title: "Por que a queda aparece dois a três meses depois do susto",
-    read: "3 min",
     body: [
       "O eflúvio telógeno é a perda que acontece quando muitos folículos passam bruscamente da fase de crescimento para a de repouso. Os desencadeadores descritos são bem conhecidos: estresse físico ou psicológico intenso, parto, restrição dietética, perda de peso rápida, febre alta, cirurgia, doenças da tireoide e alguns medicamentos.",
       "O detalhe que confunde quase todo mundo é o intervalo. A queda costuma aparecer de dois a três meses depois do evento. Quando você finalmente percebe o cabelo caindo, a fase difícil muitas vezes já passou — e é por isso que tanta gente jura que não aconteceu nada. Aconteceu; foi antes.",
@@ -522,10 +704,8 @@ const LIBRARY = [
     ],
   },
   {
-    id: "estresse",
-    kicker: "estresse",
+    id: "estresse", kicker: "estresse", read: "2 min",
     title: "O que o cortisol faz com a raiz",
-    read: "2 min",
     body: [
       "Estresse é uma das causas mais frequentes de distúrbio do crescimento capilar, e o mecanismo é razoavelmente descrito: o cortisol elevado degrada hialuronano e proteoglicanos, substâncias que integram a matriz extracelular ao redor do folículo. Além do cortisol, outros mediadores do estresse — substância P, ACTH, prolactina — foram descritos como inibidores do crescimento do fio.",
       "O estresse crônico também agrava quadros cuja origem principal é hormonal, imunológica ou tóxica. Em estudos com animais, foi associado a parada do crescimento e inflamação ao redor do folículo.",
@@ -533,10 +713,8 @@ const LIBRARY = [
     ],
   },
   {
-    id: "comida",
-    kicker: "nutrição",
+    id: "comida", kicker: "nutrição", read: "4 min",
     title: "O que a ciência sustenta sobre alimentação e queda",
-    read: "4 min",
     body: [
       "Comece pela parte incômoda: a literatura sobre nutrição e queda capilar ainda é limitada e, em vários pontos, contraditória. Qualquer material que prometa certeza absoluta sobre o assunto está vendendo alguma coisa.",
       "Dito isso, há pontos com base razoável. A deficiência de ferro é a carência nutricional mais comum do mundo e causa eflúvio telógeno, sendo frequente em mulheres com queda; a ferritina é o marcador de referência. A vitamina C melhora a absorção do ferro e por isso é recomendada junto, para quem tem essa deficiência. A deficiência de zinco está descrita como causa de eflúvio telógeno e de fio fino e quebradiço. A vitamina D regula a diferenciação dos queratinócitos pelo receptor VDR, e há consenso majoritário de repor quando há insuficiência associada à alopecia.",
@@ -546,19 +724,98 @@ const LIBRARY = [
     ],
   },
   {
-    id: "medico",
-    kicker: "limite do autocuidado",
-    title: "Quando parar de tentar sozinha e procurar um dermatologista",
-    read: "3 min",
+    id: "medico", kicker: "limite do autocuidado", read: "3 min",
+    title: "Quando parar de tentar sozinho e procurar um dermatologista",
     body: [
       "Este material é educativo e tem um limite claro. Existem sinais em que o cuidado em casa deixa de ser a resposta certa — e insistir só custa tempo, que neste assunto é justamente o recurso mais caro.",
-      "Procure avaliação se a queda for em placas ou áreas bem delimitadas; se houver coceira, vermelhidão, descamação, dor ou ferida no couro cabeludo; se a queda passar de seis meses sem melhora; se for súbita e intensa; se o afinamento se concentrar nas entradas e no topo e estiver progredindo; ou se vier acompanhada de cansaço, alterações de peso, unhas frágeis e mudanças de humor, que podem apontar tireoide ou anemia.",
+      "Procure avaliação se a queda for em placas ou áreas bem delimitadas; se houver coceira, vermelhidão, descamação, dor ou ferida no couro cabeludo; se a queda passar de seis meses sem melhora; se for súbita e intensa; se o afinamento estiver progredindo de forma consistente; ou se vier acompanhada de cansaço, alterações de peso, unhas frágeis e mudanças de humor, que podem apontar tireoide ou anemia.",
       "O que costuma ser investigado: exame clínico do couro cabeludo, tricoscopia e exames de sangue conforme a suspeita — ferritina, vitamina D, zinco, função tireoidiana, B12. A biópsia fica reservada a casos de dúvida diagnóstica.",
-      "Vale saber que existem condutas consagradas e estudadas para os principais quadros, e que elas são escolhidas caso a caso, com prescrição. Não faz sentido descrevê-las aqui como se fossem opção de prateleira — o ponto é que existem, e que chegar cedo amplia o que é possível fazer.",
+      "Vale saber que existem condutas consagradas e estudadas para os principais quadros, e que elas são escolhidas caso a caso, com prescrição — inclusive porque o que se indica para homens e para mulheres não é o mesmo. Não faz sentido descrevê-las aqui como se fossem opção de prateleira; o ponto é que existem, e que chegar cedo amplia o que é possível fazer.",
       "Nada disso invalida a sua rotina. Cuidado em casa e acompanhamento profissional trabalham juntos: um sustenta o dia a dia, o outro identifica a causa e define o tratamento.",
     ],
   },
 ];
+
+/* leitura extra, específica por sexo */
+const LIBRARY_BY_SEX = {
+  f: {
+    id: "padrao_f", kicker: "padrão feminino", read: "3 min",
+    title: "Por que a queda feminina não é 'a calvície masculina mais leve'",
+    body: [
+      "É a confusão mais comum — e ela atrapalha, porque leva mulheres a procurarem soluções pensadas para outro quadro.",
+      "A apresentação é diferente. No homem, a miniaturização começa pelas regiões temporais e pelo vértice, formando os padrões que a classificação Hamilton-Norwood organiza em sete estágios. Na mulher, o que se descreve é um afinamento difuso, mais percebido na linha média, que poupa a implantação frontal — a lógica da classificação de Ludwig. Por isso a queixa costuma ser 'a risca está mais larga', e não 'as entradas subiram'.",
+      "O mecanismo também difere. No homem, o processo é dependente de di-hidrotestosterona. Na mulher, o fator androgênico é considerado incerto: não há necessariamente aumento dos níveis circulantes de andrógenos, e outros mecanismos estão envolvidos. Há argumento consolidado de que a forma masculina e a feminina são desordens distintas — não versões da mesma coisa.",
+      "O tempo é outro: o padrão feminino tem início mais tardio, por volta da quarta década de vida, com piora após a menopausa.",
+      "E há um ponto que costuma ficar de fora dos materiais técnicos: nas mulheres a alopecia tem maior impacto emocional e social, com contribuição descrita para quadros como a depressão. Se você sente que isso pesa mais do que 'deveria', não é fragilidade sua — é um achado da literatura.",
+      "A consequência prática: tratamento feminino é decidido com critérios próprios, e há medicações usadas em homens que não são preconizadas para mulheres. Mais uma razão para a conduta vir de um dermatologista, e não de um vídeo na internet.",
+    ],
+  },
+  m: {
+    id: "padrao_m", kicker: "padrão masculino", read: "3 min",
+    title: "O que exatamente acontece na queda de padrão masculino",
+    body: [
+      "A alopecia androgenética masculina é a forma mais comum de queda progressiva no homem e piora com a idade. Os números ajudam a dimensionar: cerca de 30% aos 30 anos e 50% aos 50 — e, em estudo conduzido em Singapura, prevalência de 100% após os 80 anos. Ou seja, é praticamente uma característica do envelhecimento masculino, com ritmo muito variável entre pessoas.",
+      "O processo é a miniaturização folicular: o fio terminal — grosso, longo, pigmentado — vai sendo substituído por velo, fino e claro. Começa nas regiões temporais e no vértice, e a classificação Hamilton-Norwood descreve sete estágios dessa evolução.",
+      "O motor é hormonal e genético. O quadro é dependente de di-hidrotestosterona, com atividade aumentada da 5-alfa-redutase no folículo do couro cabeludo. A predisposição genética é forte: estudos com gêmeos mostram agregação familiar clara. Historicamente, foi a observação de que eunucos não desenvolviam calvície — enquanto seus irmãos desenvolviam — que apontou para a origem endócrina do quadro.",
+      "Dois pontos práticos. Primeiro: quanto mais precoce o início, mais exuberante tende a ser a evolução — o que faz do tempo a variável mais valiosa. Segundo: por ser progressivo, é um quadro de manejo contínuo, não de solução pontual.",
+      "Existem tratamentos consagrados e bem estudados, com indicações e efeitos adversos próprios, escolhidos caso a caso por um dermatologista. Este material não substitui essa conversa — ele existe para que você chegue nela sabendo o que está em jogo, e mais cedo.",
+    ],
+  },
+};
+
+/* ---------------------------------------------------------------------------
+   AS 3 FASES DOS 90 DIAS
+   21 dias constroem hábito; cabelo responde em meses. Cada fase tem objetivo,
+   rotina própria e uma expectativa declarada — inclusive quando a expectativa
+   correta é "nada visível ainda".
+   --------------------------------------------------------------------------- */
+
+const PHASES = [
+  {
+    id: 1, name: "Fundação", from: 1, to: 21,
+    tagline: "Fazer a rotina existir",
+    goal: "O objetivo desta fase é um só: transformar três passos em automatismo. Não é aqui que o cabelo muda — é aqui que a rotina para de depender da sua motivação.",
+    steps: (r) => [
+      "Passo 1 — Higienizar e massagear o couro cabeludo (2–3 min)",
+      `Passo 2 — Nutrir a raiz com ${r}`,
+      "Passo 3 — Proteger: protetor térmico e fronha de cetim/seda à noite",
+    ],
+    expect: "O que esperar: nada visível. O fio que cai hoje entrou em repouso há dois ou três meses — nenhuma rotina alcança isso em três semanas.",
+  },
+  {
+    id: 2, name: "Consolidação", from: 22, to: 60,
+    tagline: "Sustentar sem depender de vontade",
+    goal: "A rotina já não é novidade. Agora o prato entra como parte do protocolo, e não como um extra — é a fase em que o plano alimentar do seu perfil passa a valer todo dia.",
+    steps: (r) => [
+      "Passo 1 — Rotina capilar dos 3 passos",
+      `Passo 2 — Prato do dia dentro do seu plano alimentar (+ ${r} na frequência indicada)`,
+      "Passo 3 — Sono: proteger as horas, porque cortisol alto atrapalha a raiz",
+    ],
+    expect: "O que esperar: em alguns casos, menos fio na escova. No espelho, ainda nada. Esta é a fase em que a maioria desiste — e é exatamente por isso que ela está desenhada aqui.",
+  },
+  {
+    id: 3, name: "Leitura", from: 61, to: 90,
+    tagline: "Comparar e decidir com dado",
+    goal: "Primeira janela em que uma mudança real pode aparecer. Aqui você compara as fotos e decide o próximo passo com evidência sua, não com impressão de um dia bom ou ruim.",
+    steps: (r) => [
+      "Passo 1 — Rotina capilar dos 3 passos",
+      `Passo 2 — Prato do dia + ${r}`,
+      "Passo 3 — Registro: anotar o que mudou (queda, brilho, coceira, fios novos)",
+    ],
+    expect: "O que esperar: fios curtos nascendo perto da raiz são o primeiro sinal concreto de recuperação. Compare a foto do dia 1 com a do dia 90 — não com a sua memória.",
+  },
+];
+
+const PHOTO_DAYS = [
+  { day: 1, label: "Dia 1", note: "ponto de partida" },
+  { day: 30, label: "Dia 30", note: "primeira comparação" },
+  { day: 60, label: "Dia 60", note: "meio do caminho" },
+  { day: 90, label: "Dia 90", note: "comparação final" },
+];
+
+function phaseOfDay(day) {
+  return PHASES.find((p) => day >= p.from && day <= p.to) || PHASES[PHASES.length - 1];
+}
 
 /* =============================================================================
    ██  CONFIGURAÇÃO DE UPSELL — EDITE AQUI  ██
@@ -568,25 +825,21 @@ const LIBRARY = [
    ============================================================================= */
 
 const UPSELLS = {
-  // ---------------------------------------------------------------------
-  // OFERTA A — compra única, ticket mais alto.
-  // Aparece em 2 lugares: card na tela de Resultado (texto muda por perfil)
-  // e como "Bônus 4" travado na aba Hoje (texto único, sempre visível).
-  // ---------------------------------------------------------------------
+  // OFERTA A — compra única. Aparece na tela de Resultado (texto por perfil)
+  // e como "Bônus 4" travado na aba Hoje.
   advanced: {
     checkoutUrl: "https://SEU-CHECKOUT-AQUI.com/protocolo-avancado", // <- troque pelo link real
     price: "R$67",
     priceFrom: "R$147", // ancoragem de preço (opcional, deixe "" pra esconder)
     badge: "Protocolo Avançado",
 
-    // texto que aparece na tela de Resultado — varia por perfil (chave = key do perfil)
     resultByProfile: {
       estresse: {
         title: "Acelere com um plano específico pra esse tipo de queda",
         text: "O Protocolo Avançado inclui um plano de manejo de estresse focado em queda capilar — técnicas de respiração, cronograma de sono e uma versão estendida da rotina para os casos ligados a estresse e hormônios.",
       },
       nutricional: {
-        title: "Leve a parte nutricional pronta, sem montar nada sozinha",
+        title: "Leve a parte nutricional pronta, sem montar nada sozinho",
         text: "O Protocolo Avançado inclui um cardápio semanal completo com lista de compras pronta, pensado especificamente pra quem precisa repor nutrientes rápido.",
       },
       habito: {
@@ -599,22 +852,19 @@ const UPSELLS = {
       },
     },
 
-    // texto do card "Bônus 4" travado no dashboard (não muda por perfil)
     bonusCard: {
       title: "Bônus 4 — Protocolo Avançado",
       text: "Rotinas avançadas, cardápio completo e acompanhamento mais de perto para acelerar seus resultados.",
     },
   },
 
-  // ---------------------------------------------------------------------
-  // OFERTA B — recorrência. Aparece só quando a pessoa completa os 21 dias
-  // do checklist (maior prova de comprometimento = melhor momento de oferta).
-  // ---------------------------------------------------------------------
+  // OFERTA B — recorrência. Aparece só ao completar os 90 dias: é a maior
+  // prova de comprometimento possível dentro do app.
   club: {
     checkoutUrl: "https://SEU-CHECKOUT-AQUI.com/clube-raiz-nova", // <- troque pelo link real
     price: "R$19,90/mês",
-    title: "Você completou os 21 dias 🎉",
-    text: "Continue evoluindo com o Clube Raiz Nova: novos desafios todo mês, conteúdo extra e acompanhamento contínuo pra não perder o resultado que você construiu.",
+    title: "Você fechou os 90 dias 🎉",
+    text: "Noventa dias de constância é o que separa quem tenta de quem acompanha. Continue no Clube Raiz Nova: novos ciclos todo mês, conteúdo extra e acompanhamento contínuo pra não perder o que você construiu.",
     cta: "Conhecer o Clube",
   },
 };
@@ -622,7 +872,7 @@ const UPSELLS = {
 /* ---------------------------------------------------------------------------
    2) ESTADO
    Guardamos as RESPOSTAS, não o perfil calculado: assim, quando os textos do
-   plano forem melhorados, quem já fez o quiz passa a ver a versão nova.
+   plano forem melhorados, quem já respondeu passa a ver a versão nova.
    --------------------------------------------------------------------------- */
 
 const TABS = [
@@ -634,17 +884,29 @@ const TABS = [
 
 const MOODS = ["😞", "😕", "😐", "🙂", "😄"];
 
+const ANALISE_STEPS = [
+  "Cruzando padrão de queda e tempo de evolução",
+  "Pesando gatilhos hormonais, nutricionais e mecânicos",
+  "Comparando com os padrões descritos na literatura",
+  "Montando rotina, prato e leituras do seu perfil",
+];
+
 function freshState() {
   return {
     screen: "welcome",
+    name: "",
+    email: "",
+    emailSkipped: false,
     quizIndex: 0,
     answers: {},
     tab: "hoje",
-    checklist: Array(21).fill(false),
+    days: Array(TOTAL_DAYS).fill(false),
     todayChecklist: [false, false, false],
-    notes: {},   // { "<índice do dia>": { mood: 3, text: "..." } }
+    photos: {},   // { "1": true, "30": true, ... }
+    notes: {},    // { "<índice do dia>": { mood: 3, text: "..." } }
     openNutrient: null,
     openArticle: null,
+    openPhase: 1,
   };
 }
 
@@ -655,6 +917,10 @@ function loadState() {
     const parsed = JSON.parse(raw);
     const merged = { ...freshState(), ...parsed };
     delete merged.profile; // versões antigas guardavam o perfil calculado
+    if (!Array.isArray(merged.days) || merged.days.length !== TOTAL_DAYS) {
+      const old = Array.isArray(merged.days) ? merged.days : [];
+      merged.days = Array(TOTAL_DAYS).fill(false).map((_, i) => !!old[i]);
+    }
     return merged;
   } catch (e) {
     return freshState();
@@ -667,6 +933,8 @@ function saveState() {
 
 let state = loadState();
 
+const sexOf = () => state.answers.sexo || null;
+
 /* ---------------------------------------------------------------------------
    3) SCORING
    --------------------------------------------------------------------------- */
@@ -675,8 +943,9 @@ function computeProfile(answers) {
   const scores = { estresse: 0, nutricional: 0, habito: 0, genetico: 0 };
   const redFlags = new Set();
   let chronic = false;
+  const sex = answers.sexo || null;
 
-  QUESTIONS.forEach((q) => {
+  questionList(sex).forEach((q) => {
     const val = answers[q.id];
     if (val === undefined) return;
     const chosenIds = q.type === "multi" ? val : [val];
@@ -694,10 +963,11 @@ function computeProfile(answers) {
   const order = ["estresse", "nutricional", "habito", "genetico"];
   let top = order[0];
   order.forEach((k) => { if (scores[k] > scores[top]) top = k; });
-  // se placas foi marcado, força perfil genetico-informativo mesmo com score baixo
+  // se placas foi marcado, força o perfil informativo mesmo com score baixo
   if (redFlags.has("placas") && scores.genetico >= scores[top] - 1) top = "genetico";
 
   const base = PROFILES[top];
+  const variant = (base.bySex && sex && base.bySex[sex]) || {};
   const redFlagList = Array.from(redFlags).map((k) => REDFLAG_MESSAGES[k]);
 
   const priority = answers.prioridade;
@@ -708,10 +978,10 @@ function computeProfile(answers) {
 
   return {
     key: top,
-    name: base.name,
-    desc: base.desc,
-    focus: base.focus,
-    chapters: base.chapters,
+    sex,
+    name: variant.name || base.name,
+    desc: variant.desc || base.desc,
+    focus: variant.focus || base.focus,
     recipes,
     food: FOOD_PLAN[top],
     redFlag: redFlags.size > 0,
@@ -719,47 +989,55 @@ function computeProfile(answers) {
   };
 }
 
-function currentProfile() {
-  return computeProfile(state.answers);
-}
+const currentProfile = () => computeProfile(state.answers);
 
 /* ---------------------------------------------------------------------------
-   4) RENDER — telas
+   4) RENDER
    --------------------------------------------------------------------------- */
 
 const app = document.getElementById("app");
-
-function clone(tplId) {
-  return document.getElementById(tplId).content.cloneNode(true);
-}
+const clone = (tplId) => document.getElementById(tplId).content.cloneNode(true);
 
 function esc(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 }
 
+const firstName = () => (state.name || "").trim().split(/\s+/)[0] || "";
+
 function render() {
-  if (state.screen === "welcome") renderWelcome();
-  else if (state.screen === "quiz") renderQuiz();
-  else if (state.screen === "result") renderResult();
-  else if (state.screen === "dashboard") renderApp();
+  const r = {
+    welcome: renderWelcome, quiz: renderQuiz, analise: renderAnalise,
+    captura: renderCaptura, result: renderResult, dashboard: renderApp,
+  }[state.screen] || renderWelcome;
+  r();
 }
 
 function renderWelcome() {
   app.innerHTML = "";
   app.appendChild(clone("tpl-welcome"));
+  const input = document.getElementById("nameInput");
+  input.value = state.name || "";
+  input.addEventListener("input", () => { state.name = input.value; });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") document.querySelector('[data-action="start-quiz"]').click();
+  });
   saveState();
 }
 
 function renderQuiz() {
   app.innerHTML = "";
-  const frag = clone("tpl-quiz");
-  app.appendChild(frag);
+  app.appendChild(clone("tpl-quiz"));
 
-  const q = QUESTIONS[state.quizIndex];
-  const total = QUESTIONS.length;
-  const pct = Math.round(((state.quizIndex) / total) * 100);
+  const list = questionList(sexOf());
+  const q = list[state.quizIndex];
+  // enquanto o sexo não foi escolhido, o total é uma estimativa (as trilhas têm o mesmo tamanho)
+  const total = sexOf() ? list.length : 1 + QUESTIONS_F.length;
+  const pct = Math.round((state.quizIndex / total) * 100);
   document.getElementById("progressFill").style.width = pct + "%";
-  document.getElementById("progressLabel").textContent = `Pergunta ${state.quizIndex + 1} de ${total}`;
+
+  const who = firstName() ? `${firstName()} · ` : "";
+  document.getElementById("progressLabel").textContent =
+    `${who}Pergunta ${state.quizIndex + 1} de ${total}`;
 
   const qBox = document.getElementById("quizQuestion");
   const currentAns = state.answers[q.id] ?? (q.type === "multi" ? [] : null);
@@ -785,6 +1063,11 @@ function renderQuiz() {
       const opt = q.options.find((o) => o.id === optId);
       if (q.type === "single") {
         state.answers[q.id] = optId;
+        // trocar de sexo invalida as respostas da trilha anterior
+        if (q.id === "sexo") {
+          const keep = { sexo: optId };
+          state.answers = keep;
+        }
       } else {
         let arr = state.answers[q.id] ? [...state.answers[q.id]] : [];
         if (opt.exclusive) {
@@ -800,23 +1083,104 @@ function renderQuiz() {
     });
   });
 
+  // insight da opção selecionada — é o que dá ritmo e apelo ao quiz
+  const ans = state.answers[q.id];
+  const chosen = q.type === "multi" ? (ans || []) : (ans ? [ans] : []);
+  const insight = chosen
+    .map((id) => (q.options.find((o) => o.id === id) || {}).insight)
+    .filter(Boolean)
+    .slice(-1)[0];
+  document.getElementById("quizInsight").innerHTML = insight
+    ? `<div class="insight"><span class="insight__mark">✦</span><p>${esc(insight)}</p></div>` : "";
+
   const btnBack = document.getElementById("btnBack");
   const btnNext = document.getElementById("btnNext");
   btnBack.textContent = state.quizIndex === 0 ? "← Início" : "← Voltar";
 
   const answered = q.type === "multi" ? (state.answers[q.id] || []).length > 0 : !!state.answers[q.id];
   btnNext.disabled = !answered;
-  btnNext.textContent = state.quizIndex === total - 1 ? "Ver meu resultado →" : "Continuar →";
+  btnNext.textContent = state.quizIndex === list.length - 1 ? "Ver meu resultado →" : "Continuar →";
 
   saveState();
 }
 
+/* ------------------------------- tela de análise --------------------------- */
+
+let analiseTimers = [];
+
+function renderAnalise() {
+  app.innerHTML = "";
+  app.appendChild(clone("tpl-analise"));
+  const who = firstName();
+  document.getElementById("analiseTitle").textContent =
+    who ? `${who}, cruzando as suas respostas…` : "Cruzando as suas respostas…";
+
+  const ul = document.getElementById("analiseSteps");
+  ul.innerHTML = ANALISE_STEPS.map((s, i) => `
+    <li class="analise-step" data-i="${i}"><span class="analise-step__mark"></span>${esc(s)}</li>
+  `).join("");
+
+  analiseTimers.forEach(clearTimeout);
+  analiseTimers = [];
+  ANALISE_STEPS.forEach((_, i) => {
+    analiseTimers.push(setTimeout(() => {
+      const el = ul.querySelector(`[data-i="${i}"]`);
+      if (el) el.classList.add("is-done");
+    }, 450 + i * 520));
+  });
+  analiseTimers.push(setTimeout(() => {
+    state.screen = state.email || state.emailSkipped ? "result" : "captura";
+    render();
+  }, 450 + ANALISE_STEPS.length * 520 + 450));
+}
+
+/* ------------------------------- captura de e-mail ------------------------- */
+
+function renderCaptura() {
+  app.innerHTML = "";
+  app.appendChild(clone("tpl-captura"));
+  const who = firstName();
+  document.getElementById("capturaTitle").textContent =
+    who ? `${who}, o seu plano está pronto.` : "O seu plano está pronto.";
+  document.getElementById("capturaLede").textContent =
+    "Identificamos o padrão mais provável para o seu caso e montamos um plano de 90 dias com rotina, alimentação e leituras específicas para ele.";
+
+  const input = document.getElementById("emailInput");
+  const err = document.getElementById("emailErr");
+  input.value = state.email || "";
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") document.querySelector('[data-action="submit-email"]').click();
+  });
+  input.addEventListener("input", () => { err.hidden = true; });
+  saveState();
+}
+
+function submitEmail() {
+  const input = document.getElementById("emailInput");
+  const err = document.getElementById("emailErr");
+  const value = (input.value || "").trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
+    err.hidden = false;
+    input.focus();
+    return;
+  }
+  state.email = value;
+  // ►► INTEGRAÇÃO: envie `state.email`, `state.name` e `state.answers` para a sua
+  // ferramenta de e-mail/CRM aqui. Hoje o dado fica só no navegador.
+  state.screen = "result";
+  render();
+}
+
+/* ---------------------------------- resultado ------------------------------ */
+
 function renderResult() {
   app.innerHTML = "";
-  const frag = clone("tpl-result");
-  app.appendChild(frag);
+  app.appendChild(clone("tpl-result"));
   const p = currentProfile();
+  const who = firstName();
 
+  document.getElementById("resultFlagKicker").textContent =
+    who ? `${who} · seu diagnóstico` : "seu diagnóstico";
   document.getElementById("resultTitle").textContent = p.name;
   document.getElementById("resultDesc").textContent = p.desc;
 
@@ -827,8 +1191,7 @@ function renderResult() {
       `<ul class="alert__list">${p.redFlagList.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`;
   }
 
-  const grid = document.getElementById("focusGrid");
-  grid.innerHTML = p.focus.map((f) => `
+  document.getElementById("focusGrid").innerHTML = p.focus.map((f) => `
     <div class="focus-card">
       <div class="focus-card__icon">${f.icon}</div>
       <h3>${f.title}</h3>
@@ -836,7 +1199,6 @@ function renderResult() {
     </div>
   `).join("");
 
-  // upsell — oferta A, texto adaptado ao perfil
   const offer = UPSELLS.advanced.resultByProfile[p.key];
   document.getElementById("resultUpsell").innerHTML = `
     <div class="upsell-card">
@@ -857,24 +1219,28 @@ function renderResult() {
   saveState();
 }
 
-function currentDayIndex() {
-  const idx = state.checklist.findIndex((d) => !d);
-  return idx === -1 ? 20 : idx;
-}
-
 /* ------------------------------- shell do app ------------------------------ */
+
+function currentDayIndex() {
+  const idx = state.days.findIndex((d) => !d);
+  return idx === -1 ? TOTAL_DAYS - 1 : idx;
+}
 
 function renderApp() {
   app.innerHTML = "";
   app.appendChild(clone("tpl-app"));
   const p = currentProfile();
   const dayIdx = currentDayIndex();
-  const streak = state.checklist.filter(Boolean).length;
+  const day = Math.min(dayIdx + 1, TOTAL_DAYS);
+  const streak = state.days.filter(Boolean).length;
+  const phase = phaseOfDay(day);
 
-  document.getElementById("dashDay").textContent = Math.min(dayIdx + 1, 21);
+  const who = firstName();
+  document.getElementById("dashKicker").textContent =
+    `${who ? who + " · " : ""}dia ${day} de ${TOTAL_DAYS} · fase ${phase.id} de 3`;
   document.getElementById("dashProfileName").textContent = p.name;
   document.getElementById("streakNum").textContent = streak;
-  document.getElementById("dashProgressFill").style.width = `${(streak / 21) * 100}%`;
+  document.getElementById("dashProgressFill").style.width = `${(streak / TOTAL_DAYS) * 100}%`;
 
   const nav = document.getElementById("tabNav");
   nav.innerHTML = TABS.map((t) => `
@@ -894,7 +1260,7 @@ function renderApp() {
   const tab = TABS.find((t) => t.id === state.tab) || TABS[0];
   panel.appendChild(clone(tab.tpl));
 
-  if (tab.id === "hoje") renderTabHoje(p, dayIdx, streak);
+  if (tab.id === "hoje") renderTabHoje(p, dayIdx, day, streak, phase);
   if (tab.id === "comida") renderTabComida(p);
   if (tab.id === "receitas") renderTabReceitas(p);
   if (tab.id === "entender") renderTabEntender(p);
@@ -904,19 +1270,29 @@ function renderApp() {
 
 /* --------------------------------- aba HOJE -------------------------------- */
 
-function renderTabHoje(p, dayIdx, streak) {
+function renderTabHoje(p, dayIdx, day, streak, phase) {
   const recipeName = RECIPES[p.recipes[0]].name.toLowerCase();
-  const steps = [
-    "Passo 1 — Higienizar e massagear o couro cabeludo (2–3 min)",
-    `Passo 2 — Nutrir a raiz com ${recipeName}`,
-    "Passo 3 — Proteger: protetor térmico e fronha de cetim/seda à noite",
-  ];
+
+  document.getElementById("phaseCard").innerHTML = `
+    <div class="phase-head">
+      <div>
+        <span class="phase-badge">Fase ${phase.id} · ${esc(phase.name)}</span>
+        <h2 class="card__title">${esc(phase.tagline)}</h2>
+      </div>
+      <span class="phase-range">dias ${phase.from}–${phase.to}</span>
+    </div>
+    <p class="card__text">${esc(phase.goal)}</p>
+    <p class="phase-expect">${esc(phase.expect)}</p>
+  `;
+
+  const steps = phase.steps(recipeName);
+  document.getElementById("routineHint").textContent = `fase ${phase.id} · 3 passos`;
 
   const todayList = document.getElementById("todayChecklist");
   todayList.innerHTML = steps.map((s, i) => `
     <li class="${state.todayChecklist[i] ? "done" : ""}" data-i="${i}">
       <span class="step-mark">${state.todayChecklist[i] ? "✓" : ""}</span>
-      <span class="step-text">${s}</span>
+      <span class="step-text">${esc(s)}</span>
     </li>
   `).join("");
   todayList.querySelectorAll("li").forEach((li) => {
@@ -924,8 +1300,9 @@ function renderTabHoje(p, dayIdx, streak) {
       const i = Number(li.dataset.i);
       state.todayChecklist[i] = !state.todayChecklist[i];
       if (state.todayChecklist.every(Boolean)) {
-        state.checklist[currentDayIndex()] = true;
+        state.days[currentDayIndex()] = true;
         state.todayChecklist = [false, false, false];
+        state.openPhase = phaseOfDay(Math.min(currentDayIndex() + 1, TOTAL_DAYS)).id;
       }
       renderApp();
     });
@@ -935,6 +1312,67 @@ function renderTabHoje(p, dayIdx, streak) {
   document.getElementById("todayFoot").textContent =
     done === 0 ? "Marque os três passos para fechar o dia."
       : `${done} de 3 passos marcados — falta ${3 - done} para fechar o dia.`;
+
+  // fotos de acompanhamento
+  document.getElementById("photoRow").innerHTML = PHOTO_DAYS.map((ph) => {
+    const taken = !!state.photos[ph.day];
+    const reached = day >= ph.day;
+    return `
+      <button class="photo-cell ${taken ? "is-done" : ""} ${reached ? "" : "is-future"}" data-photo="${ph.day}">
+        <span class="photo-cell__mark">${taken ? "✓" : "📷"}</span>
+        <strong>${ph.label}</strong>
+        <span>${ph.note}</span>
+      </button>`;
+  }).join("");
+  document.getElementById("photoRow").querySelectorAll("[data-photo]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const d = btn.dataset.photo;
+      if (state.photos[d]) delete state.photos[d];
+      else state.photos[d] = true;
+      renderApp();
+    });
+  });
+
+  // tracker por fases — 90 quadradinhos de uma vez desanimam; por fase, não
+  document.getElementById("phaseTracker").innerHTML = PHASES.map((ph) => {
+    const from = ph.from - 1, to = ph.to;
+    const slice = state.days.slice(from, to);
+    const doneCount = slice.filter(Boolean).length;
+    const total = to - from;
+    const open = state.openPhase === ph.id;
+    return `
+      <div class="phase-block ${open ? "is-open" : ""}">
+        <button class="phase-block__head" data-phase="${ph.id}" aria-expanded="${open}">
+          <span class="phase-block__name">Fase ${ph.id} · ${esc(ph.name)}</span>
+          <span class="phase-block__count">${doneCount}/${total}</span>
+          <span class="phase-block__bar"><i style="width:${(doneCount / total) * 100}%"></i></span>
+          <span class="nutrient__chev">${open ? "−" : "+"}</span>
+        </button>
+        <div class="tracker-grid" ${open ? "" : "hidden"}>
+          ${slice.map((d, i) => {
+            const abs = from + i;
+            return `<div class="day-cell ${d ? "done" : ""} ${abs === currentDayIndex() && !d ? "today" : ""}"
+              data-i="${abs}" title="Dia ${abs + 1}">${d ? "✓" : abs + 1}</div>`;
+          }).join("")}
+        </div>
+      </div>`;
+  }).join("");
+
+  const tracker = document.getElementById("phaseTracker");
+  tracker.querySelectorAll("[data-phase]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = Number(btn.dataset.phase);
+      state.openPhase = state.openPhase === id ? 0 : id;
+      renderApp();
+    });
+  });
+  tracker.querySelectorAll(".day-cell").forEach((cell) => {
+    cell.addEventListener("click", () => {
+      const i = Number(cell.dataset.i);
+      state.days[i] = !state.days[i];
+      renderApp();
+    });
+  });
 
   // registro do dia (humor + anotação)
   const note = state.notes[dayIdx] || { mood: null, text: "" };
@@ -977,9 +1415,9 @@ function renderTabHoje(p, dayIdx, streak) {
     </a>
   `;
 
-  // banner do dia 21 — oferta B
-  const banner = document.getElementById("day21Banner");
-  if (streak >= 21) {
+  // oferta B — só ao fechar os 90 dias
+  const banner = document.getElementById("finalBanner");
+  if (streak >= TOTAL_DAYS) {
     const c = UPSELLS.club;
     banner.innerHTML = `
       <div class="club-banner">
@@ -990,26 +1428,10 @@ function renderTabHoje(p, dayIdx, streak) {
         <a class="btn btn--club" href="${c.checkoutUrl}" target="_blank" rel="noopener">
           ${c.cta} — ${c.price}
         </a>
-      </div>
-    `;
+      </div>`;
   } else {
     banner.innerHTML = "";
   }
-
-  // tracker 21 dias
-  const grid = document.getElementById("trackerGrid");
-  grid.innerHTML = state.checklist.map((d, i) => `
-    <div class="day-cell ${d ? "done" : ""} ${i === dayIdx && !d ? "today" : ""}" data-i="${i}" title="Dia ${i + 1}">
-      ${d ? "✓" : i + 1}
-    </div>
-  `).join("");
-  grid.querySelectorAll(".day-cell").forEach((cell) => {
-    cell.addEventListener("click", () => {
-      const i = Number(cell.dataset.i);
-      state.checklist[i] = !state.checklist[i];
-      renderApp();
-    });
-  });
 }
 
 /* ------------------------------ aba ALIMENTAÇÃO ---------------------------- */
@@ -1021,7 +1443,6 @@ function renderTabComida(p) {
   document.getElementById("foodHeadline").textContent = f.headline;
   document.getElementById("foodLede").textContent = f.lede;
 
-  // prato: anel proporcional montado com conic-gradient
   let acc = 0;
   const stops = f.plate.map((s) => {
     const from = acc; acc += s.pct;
@@ -1062,7 +1483,6 @@ function renderTabComida(p) {
     </div>
   `).join("");
 
-  // nutrientes — acordeão
   const nl = document.getElementById("nutrientList");
   nl.innerHTML = NUTRIENTS.map((n) => {
     const lvl = NUTRIENT_LEVELS[n.level];
@@ -1141,6 +1561,8 @@ function renderTabReceitas(p) {
 
 function renderTabEntender(p) {
   const list = document.getElementById("libraryList");
+  const extra = p.sex ? LIBRARY_BY_SEX[p.sex] : null;
+  const articles = extra ? [extra, ...LIBRARY] : LIBRARY;
 
   const perfilCard = `
     <article class="article is-open article--profile">
@@ -1158,7 +1580,7 @@ function renderTabEntender(p) {
       </div>
     </article>`;
 
-  const articles = LIBRARY.map((a) => {
+  const html = articles.map((a) => {
     const open = state.openArticle === a.id;
     return `
       <article class="article ${open ? "is-open" : ""}">
@@ -1178,9 +1600,7 @@ function renderTabEntender(p) {
   const sources = `
     <div class="sources">
       <h4>De onde vem o que você leu aqui</h4>
-      <ul>
-        ${SOURCES.map((s) => `<li>${esc(s)}</li>`).join("")}
-      </ul>
+      <ul>${SOURCES.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
       <p>
         Os textos foram escritos para leitura leiga a partir dessas revisões. Simplificação
         implica perda de nuance: nenhuma delas foi produzida para orientar um caso individual,
@@ -1188,7 +1608,7 @@ function renderTabEntender(p) {
       </p>
     </div>`;
 
-  list.innerHTML = perfilCard + articles + sources;
+  list.innerHTML = perfilCard + html + sources;
 
   list.querySelectorAll(".article__head[data-article]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -1218,27 +1638,37 @@ document.addEventListener("click", (e) => {
   if (!action) return;
 
   if (action === "start-quiz") {
+    const input = document.getElementById("nameInput");
+    if (input) state.name = input.value;
     state.screen = "quiz";
     state.quizIndex = 0;
     render();
   }
   if (action === "quiz-back") {
-    if (state.quizIndex === 0) { state.screen = "welcome"; }
-    else { state.quizIndex -= 1; }
+    if (state.quizIndex === 0) state.screen = "welcome";
+    else state.quizIndex -= 1;
     render();
   }
   if (action === "quiz-next") {
-    if (state.quizIndex < QUESTIONS.length - 1) {
+    const list = questionList(sexOf());
+    if (state.quizIndex < list.length - 1) {
       state.quizIndex += 1;
       render();
     } else {
-      state.screen = "result";
+      state.screen = "analise";
       render();
     }
+  }
+  if (action === "submit-email") submitEmail();
+  if (action === "skip-email") {
+    state.emailSkipped = true;
+    state.screen = "result";
+    render();
   }
   if (action === "go-dashboard") {
     state.screen = "dashboard";
     state.tab = "hoje";
+    state.openPhase = phaseOfDay(Math.min(currentDayIndex() + 1, TOTAL_DAYS)).id;
     render();
   }
 });

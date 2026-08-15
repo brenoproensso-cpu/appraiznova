@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Protocolo Raiz Nova — Seu plano personalizado</title>
-<meta name="description" content="Diagnóstico educativo de queda capilar em 7 perguntas: rotina de 21 dias, plano alimentar personalizado e biblioteca com base científica. Conteúdo educativo — não substitui avaliação médica.">
+<meta name="description" content="Diagnóstico educativo de queda capilar com trilhas separadas para homens e mulheres: plano de 90 dias, rotina, alimentação personalizada e biblioteca com base científica. Conteúdo educativo — não substitui avaliação médica.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Protocolo Raiz Nova — Seu plano personalizado">
-<meta property="og:description" content="Responda 7 perguntas e receba um plano de 21 dias com rotina, alimentação e conteúdo educativo sobre a sua queda de cabelo.">
+<meta property="og:description" content="Responda algumas perguntas e receba um plano de 90 dias com rotina, alimentação e conteúdo educativo sobre a sua queda de cabelo.">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,11 +38,18 @@
     <p class="kicker">antes de começar</p>
     <h1 class="display display--xl">Todo cabelo tem<br><em>uma história</em> por trás.</h1>
     <p class="lede">
-      Queda de cabelo não é só uma coisa — pode vir de estresse, de nutrição,
-      de hábito ou de genética, e cada uma pede um foco diferente. Em vez de te
-      entregar um protocolo genérico, vamos te fazer <strong>7 perguntas rápidas</strong>
-      e montar um plano com o que faz mais sentido pro seu caso.
+      Queda de cabelo não é uma coisa só — e não é a mesma coisa em homens e em
+      mulheres. A literatura descreve padrões, gatilhos e até mecanismos diferentes
+      entre os dois. Por isso aqui você responde a uma trilha feita para o seu caso,
+      e não a um questionário genérico.
     </p>
+
+    <div class="name-field">
+      <label for="nameInput">Como você se chama?</label>
+      <input id="nameInput" type="text" autocomplete="given-name" maxlength="40"
+        placeholder="Seu primeiro nome" enterkeyhint="go">
+    </div>
+
     <button class="btn btn--primary btn--lg" data-action="start-quiz">
       Começar meu diagnóstico <span class="btn__arrow">→</span>
     </button>
@@ -61,10 +68,43 @@
       <span class="quiz__progress-label" id="progressLabel"></span>
     </div>
     <div id="quizQuestion" class="quiz__question"></div>
+    <div id="quizInsight"></div>
     <div class="quiz__nav">
       <button class="btn btn--ghost" id="btnBack" data-action="quiz-back">← Voltar</button>
       <button class="btn btn--primary" id="btnNext" data-action="quiz-next">Continuar →</button>
     </div>
+  </section>
+</template>
+
+<template id="tpl-analise">
+  <section class="screen screen--analise">
+    <p class="kicker">montando seu plano</p>
+    <h1 class="display display--lg" id="analiseTitle">Cruzando as suas respostas…</h1>
+    <ul class="analise-steps" id="analiseSteps"></ul>
+  </section>
+</template>
+
+<template id="tpl-captura">
+  <section class="screen screen--captura">
+    <p class="kicker">seu resultado está pronto</p>
+    <h1 class="display display--lg" id="capturaTitle"></h1>
+    <p class="lede" id="capturaLede"></p>
+
+    <div class="capture-card">
+      <label for="emailInput">Para onde enviamos a sua cópia?</label>
+      <input id="emailInput" type="email" autocomplete="email" inputmode="email"
+        placeholder="seu@email.com" enterkeyhint="go">
+      <p class="capture-card__err" id="emailErr" hidden>Digite um e-mail válido para continuar.</p>
+      <button class="btn btn--primary btn--lg" data-action="submit-email">
+        Ver meu resultado <span class="btn__arrow">→</span>
+      </button>
+      <p class="capture-card__fine">
+        Enviamos o seu plano e o acompanhamento dos 90 dias. Nada de spam, e você
+        pode sair quando quiser.
+      </p>
+    </div>
+
+    <button class="link-skip" data-action="skip-email">Prefiro ver sem enviar</button>
   </section>
 </template>
 
@@ -84,7 +124,7 @@
     <div id="resultUpsell"></div>
 
     <button class="btn btn--primary btn--lg" data-action="go-dashboard">
-      Ver meu plano completo <span class="btn__arrow">→</span>
+      Ver meu plano de 90 dias <span class="btn__arrow">→</span>
     </button>
 
     <p class="disclaimer">
@@ -103,7 +143,7 @@
 
     <div class="app__head">
       <div>
-        <p class="kicker">seu plano · dia <span id="dashDay">1</span> de 21</p>
+        <p class="kicker" id="dashKicker"></p>
         <h1 class="display display--md" id="dashProfileName"></h1>
       </div>
       <div class="dash__streak">
@@ -134,27 +174,37 @@
 
 <template id="tpl-tab-hoje">
   <div class="tab-content">
-    <div id="day21Banner"></div>
+    <div id="finalBanner"></div>
+
+    <article class="card card--phase" id="phaseCard"></article>
 
     <article class="card card--routine">
       <div class="card__title-row">
         <h2 class="card__title">Rotina de hoje</h2>
-        <span class="card__hint">3 passos · ~10 min</span>
+        <span class="card__hint" id="routineHint"></span>
       </div>
       <ul class="checklist" id="todayChecklist"></ul>
       <p class="card__foot" id="todayFoot"></p>
     </article>
 
+    <article class="card card--photos">
+      <div class="card__title-row">
+        <h2 class="card__title">Registro fotográfico</h2>
+        <span class="card__hint">a única prova confiável</span>
+      </div>
+      <p class="card__text card__text--muted">
+        Queda se avalia por comparação, não por memória. Mesma luz, mesmo ângulo,
+        cabelo seco e na mesma posição — quatro fotos ao longo dos 90 dias.
+      </p>
+      <div class="photo-row" id="photoRow"></div>
+    </article>
+
     <article class="card card--tracker">
       <div class="card__title-row">
-        <h2 class="card__title">Checklist dos 21 dias</h2>
+        <h2 class="card__title">Seus 90 dias</h2>
         <span class="card__hint">toque para marcar</span>
       </div>
-      <div class="tracker-grid" id="trackerGrid"></div>
-      <p class="card__foot">
-        Vinte e um dias não é um número mágico — é tempo suficiente para a rotina virar
-        hábito. O fio em si responde mais devagar: a fase de crescimento dura anos.
-      </p>
+      <div id="phaseTracker"></div>
     </article>
 
     <article class="card card--note">
@@ -261,7 +311,7 @@
       <p class="kicker">entender</p>
       <h2 class="display display--sm">Antes de tratar, entender</h2>
       <p class="lede lede--tight">
-        Cinco leituras curtas. Elas explicam por que o seu cabelo está caindo, por que
+        Leituras curtas. Elas explicam por que o seu cabelo está caindo, por que
         a melhora demora, e em que ponto o cuidado em casa deixa de ser suficiente.
       </p>
     </header>

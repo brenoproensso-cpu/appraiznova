@@ -473,6 +473,106 @@ main{ position: relative; z-index: 1; }
 }
 
 /* ======================================================================== */
+/* NOME, INSIGHT, ANÁLISE E CAPTURA                                          */
+/* ======================================================================== */
+.name-field{ margin: 0 0 1.6rem; max-width: 26rem; }
+.name-field label, .capture-card label{
+  display:block; font-size:.76rem; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color: var(--muted); margin-bottom:.5rem;
+}
+.name-field input, .capture-card input{
+  width:100%; font-family: var(--font-body); font-size:1rem; color: var(--ink);
+  background: var(--paper); border:1.5px solid var(--line); border-radius:14px;
+  padding:.9rem 1rem; transition: border-color .18s ease;
+}
+.name-field input:focus, .capture-card input:focus{ outline:none; border-color: var(--terracota); }
+
+.insight{
+  display:flex; gap:.8rem; align-items:flex-start;
+  background: var(--blush); border-radius:16px; padding:1.1rem 1.2rem;
+  margin-top:1.4rem; animation: rise .35s cubic-bezier(.2,.7,.3,1);
+}
+.insight__mark{ color: var(--terracota-deep); font-size:1rem; line-height:1.5; flex:none; }
+.insight p{ margin:0; font-size:.9rem; line-height:1.65; color: var(--plum-ink); }
+
+.screen--analise{ min-height: 60vh; }
+.analise-steps{ list-style:none; margin:2rem 0 0; padding:0; display:flex; flex-direction:column; gap:1rem; }
+.analise-step{
+  display:flex; align-items:center; gap:.9rem; font-size:.98rem; color: var(--muted);
+  opacity:.45; transition: opacity .4s ease, color .4s ease;
+}
+.analise-step__mark{
+  width:22px; height:22px; border-radius:50%; flex:none;
+  border:2px solid var(--line); position:relative; transition: all .4s ease;
+}
+.analise-step.is-done{ opacity:1; color: var(--plum); }
+.analise-step.is-done .analise-step__mark{ background: var(--sage); border-color: var(--sage); }
+.analise-step.is-done .analise-step__mark::after{
+  content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  color: var(--paper); font-size:.7rem; font-weight:700;
+}
+
+.capture-card{
+  background: var(--paper); border:1px solid var(--line); border-radius: var(--radius);
+  padding:1.6rem 1.7rem; box-shadow: var(--shadow-soft); max-width: 30rem;
+}
+.capture-card .btn{ width:100%; justify-content:center; margin-top:1rem; }
+.capture-card__err{ margin:.5rem 0 0; font-size:.82rem; color: var(--terracota-deep); }
+.capture-card__fine{ margin:1rem 0 0; font-size:.78rem; color: var(--muted); line-height:1.55; }
+.link-skip{
+  display:inline-block; margin-top:1.2rem; background:none; border:none; cursor:pointer;
+  font-family: var(--font-body); font-size:.85rem; color: var(--muted); text-decoration:underline;
+}
+.link-skip:hover{ color: var(--plum); }
+
+/* ======================================================================== */
+/* FASES DOS 90 DIAS                                                         */
+/* ======================================================================== */
+.card--phase{ background: linear-gradient(150deg, var(--paper), var(--blush)); border-color: var(--terracota); }
+.phase-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; }
+.phase-badge{
+  display:inline-block; background: var(--terracota); color: var(--plum-ink);
+  font-size:.66rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  padding:.3rem .7rem; border-radius:999px; margin-bottom:.6rem;
+}
+.phase-range{ font-size:.76rem; color: var(--terracota-deep); font-weight:600; white-space:nowrap; }
+.phase-expect{
+  margin:1rem 0 0; font-size:.87rem; color: var(--plum-ink); line-height:1.6;
+  border-left:3px solid var(--terracota); padding-left:.9rem;
+}
+
+.photo-row{ display:grid; grid-template-columns: repeat(4, 1fr); gap:.6rem; margin-top:1rem; }
+@media (max-width: 560px){ .photo-row{ grid-template-columns: repeat(2, 1fr); } }
+.photo-cell{
+  display:flex; flex-direction:column; align-items:center; gap:.2rem; cursor:pointer;
+  background: var(--cream); border:1.5px solid var(--line); border-radius:14px;
+  padding:.9rem .6rem; font-family: var(--font-body); transition: all .15s ease; text-align:center;
+}
+.photo-cell:hover{ border-color: var(--terracota); }
+.photo-cell strong{ font-size:.84rem; color: var(--plum); }
+.photo-cell span:last-child{ font-size:.7rem; color: var(--muted); }
+.photo-cell__mark{ font-size:1.1rem; }
+.photo-cell.is-done{ background: var(--sage); border-color: var(--sage); }
+.photo-cell.is-done strong, .photo-cell.is-done span{ color: var(--paper); }
+.photo-cell.is-future{ opacity:.5; }
+
+.phase-block{ border-top:1px solid var(--line); }
+.phase-block:first-child{ border-top:none; }
+.phase-block__head{
+  width:100%; display:flex; align-items:center; gap:.9rem; text-align:left;
+  background:none; border:none; cursor:pointer; padding:.95rem 0; font-family: var(--font-body);
+}
+.phase-block__name{ font-weight:700; color: var(--plum); font-size:.92rem; white-space:nowrap; }
+.phase-block__count{ font-size:.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.phase-block__bar{ flex:1; height:6px; background: var(--blush); border-radius:999px; overflow:hidden; min-width:40px; }
+.phase-block__bar i{ display:block; height:100%; background: linear-gradient(90deg, var(--sage), var(--plum)); }
+.phase-block .tracker-grid{ padding-bottom:1.1rem; }
+@media (max-width: 480px){
+  .phase-block__head{ flex-wrap:wrap; gap:.5rem; }
+  .phase-block__bar{ order:3; flex-basis:100%; }
+}
+
+/* ======================================================================== */
 /* AVISO EDUCATIVO                                                           */
 /* ======================================================================== */
 .disclaimer{
