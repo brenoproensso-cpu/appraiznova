@@ -1,8 +1,15 @@
 # Protocolo Raiz Nova — contexto do projeto
 
 App estático (HTML + CSS + JS, sem backend, estado em `localStorage`) que entrega um
-diagnóstico educativo de queda capilar e um plano de 90 dias. Três arquivos:
-`index.html` (templates), `app.js` (conteúdo + lógica), `styles.css`.
+diagnóstico educativo de queda capilar e um plano de 90 dias.
+
+- **App (entregável pós-compra):** `index.html` (templates), `app.js` (conteúdo + lógica),
+  `styles.css`.
+- **Página de vendas:** `vendas.html` + `vendas.css`, independentes do app. Preço e link
+  de checkout ficam no objeto `OFERTA`, no fim do `vendas.html`.
+
+A página de vendas não pode prometer o que o app não entrega — sem promessa de reverter
+calvície, de prazo de resultado ou de cura. A honestidade é o argumento de venda.
 
 ## Regras que valem para toda edição
 
@@ -79,7 +86,8 @@ dashboard, e conferir o console sem erros.
 
 ## Integrações pendentes
 
-- `UPSELLS.advanced.checkoutUrl` e `UPSELLS.club.checkoutUrl` ainda são placeholder.
+- `UPSELLS.advanced.checkoutUrl` e `UPSELLS.club.checkoutUrl` (app) e `OFERTA.checkoutUrl`
+  (página de vendas) ainda são placeholder.
 
 - `CONFIG.sheetsEndpoint` liga o acompanhamento ao Google Sheets (ver `integracoes/`).
   Vazio = o app não pede e-mail e funciona 100% offline.
